@@ -15,31 +15,35 @@ export function useWorkspace() {
 
   const loadWorkspaces = useCallback(async () => {
     if (!user) return;
-    let ws = await workspaceService.getWorkspaces(user.uid);
-    if (ws.length === 0) {
-      const defaultWs = {
-        name: 'My Workspace',
-        type: 'personal' as const,
-        ownerId: user.uid,
-        members: [
-          {
-            uid: user.uid,
-            role: 'admin' as const,
-            displayName: user.displayName,
-            email: user.email,
-            photoURL: user.photoURL,
-            joinedAt: new Date().toISOString(),
-          },
-        ],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      const wsId = await workspaceService.createWorkspace(defaultWs);
-      ws = [{ id: wsId as string, ...defaultWs }] as Workspace[];
-    }
-    setWorkspaces(ws as Workspace[]);
-    if (ws.length > 0 && !currentWorkspace) {
-      setCurrentWorkspace(ws[0] as Workspace);
+    try {
+      let ws = await workspaceService.getWorkspaces(user.uid);
+      if (ws.length === 0) {
+        const defaultWs = {
+          name: 'My Workspace',
+          type: 'personal' as const,
+          ownerId: user.uid,
+          members: [
+            {
+              uid: user.uid,
+              role: 'admin' as const,
+              displayName: user.displayName,
+              email: user.email,
+              photoURL: user.photoURL,
+              joinedAt: new Date().toISOString(),
+            },
+          ],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        const wsId = await workspaceService.createWorkspace(defaultWs);
+        ws = [{ id: wsId as string, ...defaultWs }] as Workspace[];
+      }
+      setWorkspaces(ws as Workspace[]);
+      if (ws.length > 0 && !currentWorkspace) {
+        setCurrentWorkspace(ws[0] as Workspace);
+      }
+    } catch (error) {
+      console.warn('Failed to load workspaces:', error);
     }
   }, [user, setWorkspaces, setCurrentWorkspace, currentWorkspace]);
 
@@ -202,27 +206,33 @@ export function useActivity() {
   useEffect(() => {
     if (!currentWorkspace) return;
 
-    let unsubscribe: (() => void) | undefined;
+    let unsub: (() => void) | undefined;
 
     try {
-      const unsub = activityService.subscribeToActivities(
+      const result = activityService.subscribeToActivities(
         currentWorkspace.id,
-        (data) => setActivities(data as unknown as Activity[])
+        (data) => {
+          try {
+            setActivities(data as unknown as Activity[]);
+          } catch {}
+        }
       );
-      if (typeof unsub === 'function') {
-        unsubscribe = unsub;
+      if (typeof result === 'function') {
+        unsub = result;
       }
     } catch (error) {
-      console.error('Activity subscription failed, falling back to one-time fetch:', error);
+      console.warn('Activity subscription failed, using fallback:', error);
       activityService.getActivities(currentWorkspace.id).then((data) => {
         setActivities(data as Activity[]);
       }).catch(() => {});
     }
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      try {
+        if (unsub) unsub();
+      } catch {}
     };
-  }, [currentWorkspace]);
+  }, [currentWorkspace?.id]);
 
   return { activities };
 }
