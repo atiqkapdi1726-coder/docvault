@@ -1,55 +1,41 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useAuth } from '@/lib/firebase/auth';
-import { useRouter, usePathname } from 'next/navigation';
 import { useAppStore } from '@/lib/stores/appStore';
 import type { User } from '@/lib/types';
 
+const DEFAULT_USER: User = {
+  uid: 'local-user',
+  displayName: 'DocVault User',
+  email: 'user@docvault.app',
+  photoURL: null,
+  createdAt: new Date().toISOString(),
+};
+
 interface AuthContextType {
   user: User | null;
-  firebaseUser: ReturnType<typeof useAuth>['firebaseUser'];
+  firebaseUser: null;
   loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
-  user: null,
+  user: DEFAULT_USER,
   firebaseUser: null,
-  loading: true,
+  loading: false,
 });
 
 export function useAuthContext() {
   return useContext(AuthContext);
 }
 
-const PUBLIC_ROUTES = ['/login', '/signup', '/forgot-password', '/shared'];
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const auth = useAuth();
-  const router = useRouter();
-  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const { setUser } = useAppStore.getState();
 
   useEffect(() => {
     setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    setUser(auth.user);
-  }, [auth.user, setUser]);
-
-  useEffect(() => {
-    if (!mounted || auth.loading) return;
-
-    const isPublicRoute = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
-
-    if (!auth.user && !isPublicRoute) {
-      router.push('/login');
-    } else if (auth.user && isPublicRoute && !pathname.startsWith('/shared')) {
-      router.push('/dashboard');
-    }
-  }, [auth.user, auth.loading, pathname, router, mounted]);
+    setUser(DEFAULT_USER);
+  }, [setUser]);
 
   if (!mounted) {
     return (
@@ -67,9 +53,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        user: auth.user,
-        firebaseUser: auth.firebaseUser,
-        loading: auth.loading,
+        user: DEFAULT_USER,
+        firebaseUser: null,
+        loading: false,
       }}
     >
       {children}

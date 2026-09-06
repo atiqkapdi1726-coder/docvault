@@ -3,14 +3,12 @@
 import { useAuthContext } from '@/components/auth/AuthProvider';
 import { useTheme } from '@/components/ui/ThemeProvider';
 import { useAppStore } from '@/lib/stores/appStore';
-import { cn } from '@/lib/utils';
 import {
-  Menu, X, Search, Bell, Moon, Sun, LogOut, Settings, User,
+  Menu, X, Search, Bell, Moon, Sun, Settings,
   Command,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '@/lib/firebase/auth';
 import { useRouter } from 'next/navigation';
 import { getInitials } from '@/lib/utils';
 import { CommandPalette } from '@/components/commands/CommandPalette';
@@ -19,7 +17,6 @@ export function TopNav() {
   const { user } = useAuthContext();
   const { darkMode, toggleDarkMode } = useTheme();
   const { sidebarOpen, setSidebarOpen, commandPaletteOpen, setCommandPaletteOpen } = useAppStore();
-  const { signOut } = useAuth();
   const router = useRouter();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -45,11 +42,6 @@ export function TopNav() {
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
-
-  const handleSignOut = async () => {
-    await signOut();
-    router.push('/login');
-  };
 
   return (
     <>
@@ -111,17 +103,9 @@ export function TopNav() {
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="flex items-center gap-2 p-1 rounded-lg hover:bg-[rgb(var(--muted))] transition-colors"
               >
-                {user?.photoURL ? (
-                  <img
-                    src={user.photoURL}
-                    alt={user.displayName}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500 to-pink-500 flex items-center justify-center text-white text-sm font-medium">
-                    {user ? getInitials(user.displayName || user.email) : '?'}
-                  </div>
-                )}
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500 to-pink-500 flex items-center justify-center text-white text-sm font-medium">
+                  {user ? getInitials(user.displayName || user.email) : '?'}
+                </div>
               </button>
 
               <AnimatePresence>
@@ -141,12 +125,6 @@ export function TopNav() {
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))] transition-colors"
                     >
                       <Settings size={16} /> Settings
-                    </button>
-                    <button
-                      onClick={handleSignOut}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))] text-[rgb(var(--destructive))] transition-colors"
-                    >
-                      <LogOut size={16} /> Sign out
                     </button>
                   </motion.div>
                 )}
