@@ -15,7 +15,28 @@ export function useWorkspace() {
 
   const loadWorkspaces = useCallback(async () => {
     if (!user) return;
-    const ws = await workspaceService.getWorkspaces(user.uid);
+    let ws = await workspaceService.getWorkspaces(user.uid);
+    if (ws.length === 0) {
+      const defaultWs = {
+        name: 'My Workspace',
+        type: 'personal' as const,
+        ownerId: user.uid,
+        members: [
+          {
+            uid: user.uid,
+            role: 'admin' as const,
+            displayName: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL,
+            joinedAt: new Date().toISOString(),
+          },
+        ],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      const wsId = await workspaceService.createWorkspace(defaultWs);
+      ws = [{ id: wsId as string, ...defaultWs }] as Workspace[];
+    }
     setWorkspaces(ws as Workspace[]);
     if (ws.length > 0 && !currentWorkspace) {
       setCurrentWorkspace(ws[0] as Workspace);
