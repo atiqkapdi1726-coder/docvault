@@ -1,28 +1,74 @@
 'use client';
 
 import { AppLayout } from '@/components/layout/AppLayout';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAppStore } from '@/lib/stores/appStore';
+import { useDocuments } from '@/lib/hooks';
 import { documentService } from '@/lib/services/document';
 import { formatFileSize, formatRelativeTime, getFileExtension, cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, FileText, Filter, X, SortAsc } from 'lucide-react';
+import { Search, FileText, Filter, X, SortAsc, Sparkles, Loader2 } from 'lucide-react';
 import { debounce } from '@/lib/utils';
 import Link from 'next/link';
 import type { Document } from '@/lib/types';
+import { toast } from '@/components/ui/Toaster';
 
 export default function SearchPage() {
-  const { currentWorkspace } = useAppStore();
+  const { currentWorkspace, documents } = useAppStore();
+  useDocuments(); // keeps the store's documents fresh (real-time) for AI search
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [aiMode, setAiMode] = useState(false);
+
+  const runAiSearch = async (searchQuery: string) => {
+    if (!searchQuery.trim() || documents.length === 0) {
+      setResults([]);
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch('/api/ai/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workspaceId: currentWorkspace?.id,
+          query: searchQuery,
+          documents: documents.slice(0, 100).map((d) => ({
+            id: d.id,
+            name: d.name,
+            description: d.description,
+            tags: d.tags,
+            aiSummary: d.aiSummary,
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (data?.success) {
+        const matched = documents.filter((d) => data.results.includes(d.id));
+        setResults(matched);
+      } else {
+        toast(data?.error || 'AI search failed', 'error');
+        setResults([]);
+      }
+    } catch {
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const performSearch = useCallback(
     debounce(async (...args: unknown[]) => {
       const searchQuery = args[0] as string;
+      const mode = args[1] as boolean;
       if (!currentWorkspace || !searchQuery.trim()) {
         setResults([]);
+        return;
+      }
+      if (mode) {
+        await runAiSearch(searchQuery);
         return;
       }
       setLoading(true);
@@ -34,13 +80,19 @@ export default function SearchPage() {
       } finally {
         setLoading(false);
       }
-    }, 300),
-    [currentWorkspace]
+    }, 400),
+    [currentWorkspace, documents]
   );
 
   const handleSearch = (value: string) => {
     setQuery(value);
-    performSearch(value);
+    performSearch(value, aiMode);
+  };
+
+  const toggleAiMode = () => {
+    const next = !aiMode;
+    setAiMode(next);
+    if (query.trim()) performSearch(query, next);
   };
 
   const filteredResults = results.filter((doc) => {
@@ -58,20 +110,38 @@ export default function SearchPage() {
 
         <div className="card p-4">
           <div className="flex items-center gap-3">
-            <Search size={20} className="text-[rgb(var(--muted-foreground))]" />
+            {aiMode ? (
+              <Sparkles size={20} className="text-blue-500" />
+            ) : (
+              <Search size={20} className="text-[rgb(var(--muted-foreground))]" />
+            )}
             <input
               type="text"
               value={query}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Search by name, description, tags..."
+              placeholder={aiMode ? 'Describe what you are looking for…' : 'Search by name, description, tags...'}
               className="flex-1 bg-transparent outline-none text-lg"
               autoFocus
             />
-            {query && (
+            {loading && <Loader2 size={18} className="animate-spin text-blue-500" />}
+            {query && !loading && (
               <button onClick={() => { setQuery(''); setResults([]); }} className="text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]">
                 <X size={20} />
               </button>
             )}
+            <button
+              onClick={toggleAiMode}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border',
+                aiMode
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent shadow-md'
+                  : 'border-[rgb(var(--border))] text-[rgb(var(--muted-foreground))] hover:border-blue-400 hover:text-blue-600'
+              )}
+              title="AI semantic search - find by meaning, not exact words"
+            >
+              <Sparkles size={14} />
+              AI Search
+            </button>
           </div>
 
           <div className="flex gap-2 mt-3 flex-wrap">
@@ -90,6 +160,12 @@ export default function SearchPage() {
               </button>
             ))}
           </div>
+          {aiMode && (
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-3 flex items-center gap-1.5">
+              <Sparkles size={12} />
+              AI search finds documents by meaning — e.g. &ldquo;tax paperwork from last year&rdquo; matches invoice and tax files.
+            </p>
+          )}
         </div>
 
         {loading && (

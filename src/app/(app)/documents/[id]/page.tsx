@@ -12,7 +12,7 @@ import { motion } from 'framer-motion';
 import {
   FileText, Download, Share2, Trash2, Tag, Clock, Eye,
   MessageSquare, Plus, Send, Link2, Copy, Check, Lock,
-  History, X, Calendar, FileImage, RotateCcw,
+  History, X, Calendar, FileImage, RotateCcw, Sparkles, Bot, User as UserIcon, Loader2,
 } from 'lucide-react';
 import type { Document, Comment, SharedLink } from '@/lib/types';
 import { CommentSection } from '@/components/comments/CommentSection';
@@ -36,6 +36,70 @@ export default function DocumentDetailPage() {
   const [sharePassword, setSharePassword] = useState('');
   const [copied, setCopied] = useState(false);
   const [sharedLinks, setSharedLinks] = useState<SharedLink[]>([]);
+
+  // AI chat state
+  const [showAIChat, setShowAIChat] = useState(false);
+  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
+
+  const askAI = async (question: string) => {
+    if (!question.trim() || !doc || chatLoading) return;
+    setChatMessages((prev) => [...prev, { role: 'user', content: question }]);
+    setChatInput('');
+    setChatLoading(true);
+    try {
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          documentId: doc.id,
+          question,
+          history: chatMessages.slice(-6),
+        }),
+      });
+      const data = await res.json();
+      const answer =
+        data?.answer ||
+        (data?.error?.includes('not configured')
+          ? 'AI is not configured. Add a GEMINI_API_KEY to enable this feature.'
+          : 'Sorry, I could not answer that right now.');
+      setChatMessages((prev) => [...prev, { role: 'assistant', content: answer }]);
+    } catch {
+      setChatMessages((prev) => [...prev, { role: 'assistant', content: 'Something went wrong. Please try again.' }]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const regenerateAnalysis = async () => {
+    if (!doc || aiBusy) return;
+    setAiBusy(true);
+    try {
+      const res = await fetch('/api/ai/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentId: doc.id }),
+      });
+      const data = await res.json();
+      if (data?.success) {
+        setDoc({
+          ...doc,
+          aiSummary: data.aiSummary,
+          aiTags: data.aiTags,
+          description: data.description,
+        });
+        toast('AI analysis updated', 'success');
+      } else {
+        toast(data?.error || 'AI analysis failed', 'error');
+      }
+    } catch {
+      toast('AI analysis failed', 'error');
+    } finally {
+      setAiBusy(false);
+    }
+  };
 
   useEffect(() => {
     const loadDoc = async () => {
@@ -175,7 +239,13 @@ export default function DocumentDetailPage() {
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <button onClick={handleDownload} className="btn-primary flex items-center gap-2 text-sm">
+              <button
+                onClick={() => setShowAIChat(!showAIChat)}
+                className="btn-primary flex items-center gap-2 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              >
+                <Sparkles size={16} /> Ask AI
+              </button>
+              <button onClick={handleDownload} className="btn-secondary flex items-center gap-2 text-sm">
                 <Download size={16} /> Download
               </button>
               <button onClick={() => setShowShare(!showShare)} className="btn-secondary flex items-center gap-2 text-sm">
@@ -318,19 +388,125 @@ export default function DocumentDetailPage() {
           </motion.div>
         )}
 
-        {doc.aiSummary && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="card p-5 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/10 dark:to-blue-900/10 border-blue-200 dark:border-blue-800">
-            <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">AI Summary</p>
-            <p className="text-sm">{doc.aiSummary}</p>
-            {doc.aiTags && doc.aiTags.length > 0 && (
-              <div className="flex gap-1 mt-2">
-                {doc.aiTags.map((tag) => (
-                  <span key={tag} className="px-2 py-0.5 text-xs rounded-full bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-300">{tag}</span>
-                ))}
-              </div>
-            )}
+        {/* Ask AI chat panel */}
+        {showAIChat && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card overflow-hidden">
+            <div className="p-4 border-b border-[rgb(var(--border))] flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Sparkles size={18} /> Ask AI about this document
+              </h3>
+              <button onClick={() => setShowAIChat(false)} className="hover:opacity-80">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="h-80 overflow-y-auto p-4 space-y-4">
+              {chatMessages.length === 0 && (
+                <div className="text-center py-8">
+                  <Bot size={36} className="mx-auto text-blue-500 mb-3 opacity-60" />
+                  <p className="text-sm text-[rgb(var(--muted-foreground))] mb-3">
+                    Ask anything about this document — its content, key points, dates, numbers…
+                  </p>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {['Summarize this document', 'What are the key points?', 'What dates or deadlines are mentioned?'].map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => askAI(s)}
+                        className="px-3 py-1.5 text-xs rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {chatMessages.map((m, i) => (
+                <div key={i} className={`flex gap-3 ${m.role === 'user' ? 'justify-end' : ''}`}>
+                  {m.role === 'assistant' && (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white flex-shrink-0">
+                      <Bot size={16} />
+                    </div>
+                  )}
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
+                      m.role === 'user'
+                        ? 'bg-[rgb(var(--primary))] text-white'
+                        : 'bg-[rgb(var(--muted))]'
+                    }`}
+                  >
+                    {m.content}
+                  </div>
+                  {m.role === 'user' && (
+                    <div className="w-8 h-8 rounded-full bg-[rgb(var(--muted))] flex items-center justify-center flex-shrink-0">
+                      <UserIcon size={16} />
+                    </div>
+                  )}
+                </div>
+              ))}
+              {chatLoading && (
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white flex-shrink-0">
+                    <Bot size={16} />
+                  </div>
+                  <div className="bg-[rgb(var(--muted))] rounded-2xl px-4 py-2.5 flex items-center gap-2">
+                    <Loader2 size={14} className="animate-spin" />
+                    <span className="text-sm text-[rgb(var(--muted-foreground))]">Thinking…</span>
+                  </div>
+                </div>
+              )}
+            </div>
+            <form
+              onSubmit={(e) => { e.preventDefault(); askAI(chatInput); }}
+              className="p-4 border-t border-[rgb(var(--border))] flex gap-2"
+            >
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Ask a question about this document…"
+                className="input-field flex-1"
+                disabled={chatLoading}
+              />
+              <button type="submit" disabled={!chatInput.trim() || chatLoading} className="btn-primary px-4">
+                {chatLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+              </button>
+            </form>
           </motion.div>
         )}
+
+        {/* AI Summary card (with regenerate) */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="card p-5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 border-blue-200 dark:border-blue-800">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles size={14} className="text-blue-600 dark:text-blue-400" />
+                <p className="text-xs font-medium text-blue-600 dark:text-blue-400">AI Summary</p>
+              </div>
+              {doc.aiSummary ? (
+                <p className="text-sm">{doc.aiSummary}</p>
+              ) : (
+                <p className="text-sm text-[rgb(var(--muted-foreground))]">
+                  No AI summary yet. Generate one to unlock smart search and insights.
+                </p>
+              )}
+              {doc.aiTags && doc.aiTags.length > 0 && (
+                <div className="flex gap-1 mt-2 flex-wrap">
+                  {doc.aiTags.map((tag) => (
+                    <span key={tag} className="px-2 py-0.5 text-xs rounded-full bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-300">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={regenerateAnalysis}
+              disabled={aiBusy}
+              className="btn-secondary text-xs flex items-center gap-1.5 flex-shrink-0"
+              title="Generate or refresh AI summary"
+            >
+              {aiBusy ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+              {aiBusy ? 'Analyzing…' : doc.aiSummary ? 'Re-analyze' : 'Analyze'}
+            </button>
+          </div>
+        </motion.div>
 
         <CommentSection documentId={doc.id} />
       </div>

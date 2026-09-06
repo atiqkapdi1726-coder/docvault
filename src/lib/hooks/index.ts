@@ -9,6 +9,7 @@ import { activityService } from '../services/activity';
 import { v4 as uuidv4 } from 'uuid';
 import type { Document, Folder, Workspace, Activity, UploadProgress } from '../types';
 import { storageService } from '../firebase/storage';
+import { toast } from '@/components/ui/Toaster';
 
 export function useWorkspace() {
   const { currentWorkspace, setCurrentWorkspace, workspaces, setWorkspaces, user } = useAppStore();
@@ -192,6 +193,20 @@ export function useDocuments(folderId?: string | null) {
         };
 
         const docId = await documentService.createDocument(docData);
+
+        // Fire-and-forget AI analysis (updates doc when done via real-time sync)
+        fetch('/api/ai/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ documentId: docId }),
+        })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((data) => {
+            if (data?.aiSummary) {
+              toast(`${file.name}: AI summary ready`, 'success');
+            }
+          })
+          .catch(() => {});
 
         await activityService.logActivity({
           workspaceId: currentWorkspace.id,
