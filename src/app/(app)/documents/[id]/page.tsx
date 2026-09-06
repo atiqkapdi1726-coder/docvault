@@ -53,6 +53,7 @@ export default function DocumentDetailPage() {
 
     await documentService.createShareLink({
       documentId: doc.id,
+      workspaceId: doc.workspaceId,
       createdBy: user.uid,
       expiresAt: expiryDate,
       password: sharePassword || null,

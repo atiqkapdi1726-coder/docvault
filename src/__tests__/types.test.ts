@@ -103,6 +103,7 @@ describe('Type definitions', () => {
   it('Activity type has required fields', () => {
     const activity: Activity = {
       id: 'a1',
+      workspaceId: 'ws1',
       documentId: 'doc1',
       userId: 'user1',
       userName: 'Test User',
@@ -117,6 +118,7 @@ describe('Type definitions', () => {
   it('AuditLog type has required fields', () => {
     const log: AuditLog = {
       id: 'log1',
+      workspaceId: 'ws1',
       userId: 'user1',
       userName: 'Test User',
       userPhotoURL: null,
@@ -136,6 +138,7 @@ describe('Type definitions', () => {
     const link: SharedLink = {
       id: 'link1',
       documentId: 'doc1',
+      workspaceId: 'ws1',
       token: 'abc123',
       createdBy: 'user1',
       expiresAt: null,
