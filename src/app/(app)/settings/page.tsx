@@ -11,6 +11,12 @@ export default function SettingsPage() {
   const { user } = useAppStore();
   const { darkMode, toggleDarkMode } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
+  const [notifications, setNotifications] = useState({
+    email: true,
+    documentUpdates: true,
+    comments: true,
+    activityFeed: false,
+  });
 
   const tabs = [
     { id: 'general', label: 'General', icon: SettingsIcon },
@@ -103,11 +109,25 @@ export default function SettingsPage() {
               {activeTab === 'notifications' && (
                 <div className="space-y-6">
                   <h2 className="text-lg font-semibold">Notifications</h2>
-                  {['Email notifications', 'Document updates', 'Comments', 'Activity feed'].map((item) => (
-                    <div key={item} className="flex items-center justify-between p-4 bg-[rgb(var(--muted))] rounded-lg">
-                      <p className="font-medium text-sm">{item}</p>
-                      <button className="w-10 h-5 rounded-full bg-[rgb(var(--primary))] relative">
-                        <div className="absolute top-0.5 left-5 w-4 h-4 rounded-full bg-white shadow" />
+                  {([
+                    { key: 'email', label: 'Email notifications' },
+                    { key: 'documentUpdates', label: 'Document updates' },
+                    { key: 'comments', label: 'Comments' },
+                    { key: 'activityFeed', label: 'Activity feed' },
+                  ] as const).map(({ key, label }) => (
+                    <div key={key} className="flex items-center justify-between p-4 bg-[rgb(var(--muted))] rounded-lg">
+                      <p className="font-medium text-sm">{label}</p>
+                      <button
+                        onClick={() => setNotifications((prev) => ({ ...prev, [key]: !prev[key] }))}
+                        className={`w-10 h-5 rounded-full transition-colors relative ${
+                          notifications[key] ? 'bg-[rgb(var(--primary))]' : 'bg-[rgb(var(--muted))] border border-[rgb(var(--border))]'
+                        }`}
+                      >
+                        <div
+                          className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                            notifications[key] ? 'translate-x-5' : 'translate-x-0.5'
+                          }`}
+                        />
                       </button>
                     </div>
                   ))}

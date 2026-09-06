@@ -14,10 +14,7 @@ import {
 } from 'lucide-react';
 import { folderService } from '@/lib/services/folder';
 import { documentService } from '@/lib/services/document';
-import { storageService } from '@/lib/firebase/storage';
-import { v4 as uuidv4 } from 'uuid';
 import Link from 'next/link';
-import { FolderTree } from '@/components/folders/FolderTree';
 import { UploadZone } from '@/components/documents/UploadZone';
 
 export default function DocumentsPage() {
@@ -30,6 +27,14 @@ export default function DocumentsPage() {
   const [newFolderName, setNewFolderName] = useState('');
   const [showUpload, setShowUpload] = useState(false);
   const [contextMenu, setContextMenu] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClick = () => setContextMenu(null);
+    if (contextMenu) {
+      document.addEventListener('click', handleClick);
+      return () => document.removeEventListener('click', handleClick);
+    }
+  }, [contextMenu]);
 
   useEffect(() => {
     if (currentWorkspace) {
@@ -248,17 +253,42 @@ export default function DocumentsPage() {
                                   exit={{ opacity: 0, scale: 0.95 }}
                                   className="absolute right-0 top-8 w-40 card p-1 shadow-lg z-10"
                                 >
-                                  <button className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]">
+                                  <Link
+                                    href={`/documents/${doc.id}`}
+                                    onClick={() => setContextMenu(null)}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]"
+                                  >
                                     <Eye size={14} /> View
-                                  </button>
-                                  <button className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]">
-                                    <Download size={14} /> Download
-                                  </button>
-                                  <button className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]">
+                                  </Link>
+                                  {doc.fileUrl && (
+                                    <a
+                                      href={doc.fileUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={() => setContextMenu(null)}
+                                      className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]"
+                                    >
+                                      <Download size={14} /> Download
+                                    </a>
+                                  )}
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(`${window.location.origin}/documents/${doc.id}`);
+                                      setContextMenu(null);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]"
+                                  >
                                     <Share2 size={14} /> Share
                                   </button>
-                                  <button className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]">
-                                    <Star size={14} /> Star
+                                  <button
+                                    onClick={async () => {
+                                      await documentService.updateDocument(doc.id, { isStarred: !(doc as any).isStarred } as any);
+                                      loadDocuments();
+                                      setContextMenu(null);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]"
+                                  >
+                                    <Star size={14} /> {(doc as any).isStarred ? 'Unstar' : 'Star'}
                                   </button>
                                   <button
                                     onClick={() => handleDeleteDoc(doc.id)}

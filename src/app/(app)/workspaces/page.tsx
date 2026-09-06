@@ -5,14 +5,13 @@ import { useEffect, useState } from 'react';
 import { useAppStore } from '@/lib/stores/appStore';
 import { workspaceService } from '@/lib/services/workspace';
 import { useWorkspace } from '@/lib/hooks';
-import { cn, getWorkspaceRoleLabel } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import {
   Plus, Users, Settings, Trash2, Crown, Shield, Edit3, Eye,
   UserPlus, Copy, Check,
 } from 'lucide-react';
 import type { Workspace, WorkspaceMember, UserRole } from '@/lib/types';
-import { v4 as uuidv4 } from 'uuid';
 
 export default function WorkspacesPage() {
   const { user } = useAppStore();

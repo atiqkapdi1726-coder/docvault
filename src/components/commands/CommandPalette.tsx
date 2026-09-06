@@ -14,7 +14,7 @@ interface CommandPaletteProps {
 }
 
 const commands = [
-  { id: 'upload', label: 'Upload document', icon: FileText, href: '/documents/upload' },
+  { id: 'upload', label: 'Upload document', icon: FileText, href: '/documents' },
   { id: 'new-folder', label: 'Create new folder', icon: FolderOpen, href: '/documents' },
   { id: 'search', label: 'Search documents', icon: Search, href: '/search' },
   { id: 'dashboard', label: 'Go to Dashboard', icon: Hash, href: '/dashboard' },

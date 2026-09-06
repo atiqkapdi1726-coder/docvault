@@ -19,6 +19,7 @@ export function CommentSection({ documentId }: CommentSectionProps) {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = commentService.subscribeToComments(documentId, (data) => {
@@ -106,9 +107,35 @@ export function CommentSection({ documentId }: CommentSectionProps) {
                   )}
                   {comment.userId === user?.uid && (
                     <div className="relative">
-                      <button className="text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]">
+                      <button
+                        onClick={() => setMenuOpenId(menuOpenId === comment.id ? null : comment.id)}
+                        className="text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]"
+                      >
                         <MoreVertical size={14} />
                       </button>
+                      {menuOpenId === comment.id && (
+                        <div className="absolute right-0 top-6 w-32 card p-1 shadow-lg z-10">
+                          <button
+                            onClick={() => {
+                              setEditingId(comment.id);
+                              setEditContent(comment.content);
+                              setMenuOpenId(null);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]"
+                          >
+                            <Edit3 size={14} /> Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleDelete(comment.id);
+                              setMenuOpenId(null);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600"
+                          >
+                            <Trash2 size={14} /> Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

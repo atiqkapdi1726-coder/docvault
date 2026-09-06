@@ -10,7 +10,7 @@ import type { Document } from '@/lib/types';
 import { Trash2, RotateCcw, FileText, AlertTriangle } from 'lucide-react';
 
 export default function TrashPage() {
-  const { currentWorkspace, user } = useAppStore();
+  const { currentWorkspace } = useAppStore();
   const [trashDocs, setTrashDocs] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
 

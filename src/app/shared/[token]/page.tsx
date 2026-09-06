@@ -59,11 +59,16 @@ export default function SharedDocumentPage() {
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (shareLink?.password === password) {
-      setAuthenticated(true);
-      setShowPassword(false);
-      const doc = await documentService.getDocument(shareLink.documentId);
-      setDocument(doc as Document);
-      await documentService.incrementAccessCount(shareLink.id);
+      try {
+        setAuthenticated(true);
+        setShowPassword(false);
+        const doc = await documentService.getDocument(shareLink.documentId);
+        setDocument(doc as Document);
+        await documentService.incrementAccessCount(shareLink.id);
+      } catch {
+        setError('Failed to load document');
+        setAuthenticated(false);
+      }
     } else {
       setError('Incorrect password');
     }

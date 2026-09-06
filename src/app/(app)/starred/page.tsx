@@ -10,7 +10,7 @@ import type { Document } from '@/lib/types';
 import { Star, FileText } from 'lucide-react';
 
 export default function StarredPage() {
-  const { currentWorkspace, user } = useAppStore();
+  const { currentWorkspace } = useAppStore();
   const [starredDocs, setStarredDocs] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
 

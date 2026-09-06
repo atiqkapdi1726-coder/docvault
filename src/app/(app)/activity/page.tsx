@@ -27,6 +27,8 @@ const actionColors: Record<string, string> = {
   share: 'bg-purple-100 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400',
   download: 'bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400',
   comment: 'bg-pink-100 text-pink-600 dark:bg-pink-900/20 dark:text-pink-400',
+  star: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400',
+  move: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400',
 };
 
 export default function ActivityPage() {

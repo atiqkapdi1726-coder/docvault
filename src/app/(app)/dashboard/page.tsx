@@ -3,10 +3,9 @@
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useEffect, useState } from 'react';
 import { useAppStore } from '@/lib/stores/appStore';
-import { useWorkspace, useDocuments, useActivity } from '@/lib/hooks';
+import { useActivity } from '@/lib/hooks';
 import { formatFileSize, formatRelativeTime } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { DashboardSkeleton } from '@/components/skeletons/Skeletons';
 import {
   FileText, FolderOpen, Users, HardDrive, TrendingUp,
   Upload, Clock, Star, Activity as ActivityIcon,
@@ -16,7 +15,6 @@ import { folderService } from '@/lib/services/folder';
 
 export default function DashboardPage() {
   const { user, currentWorkspace } = useAppStore();
-  const { loading } = useAppStore();
   const [stats, setStats] = useState({
     docCount: 0,
     folderCount: 0,

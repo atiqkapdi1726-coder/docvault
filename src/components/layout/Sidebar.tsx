@@ -33,6 +33,16 @@ export function Sidebar() {
   const { sidebarOpen, setSidebarOpen } = useAppStore();
   const { workspaces, currentWorkspace, setCurrentWorkspace } = useWorkspace();
   const [wsDropdownOpen, setWsDropdownOpen] = useState(false);
+  const [storageUsed, setStorageUsed] = useState(0);
+  const storageLimit = 10 * 1024 * 1024 * 1024;
+
+  useEffect(() => {
+    if (!currentWorkspace) return;
+    documentService.getDocuments(currentWorkspace.id).then((docs) => {
+      const total = docs.reduce((sum: number, d: any) => sum + (d.fileSize || 0), 0);
+      setStorageUsed(total);
+    }).catch(() => {});
+  }, [currentWorkspace?.id]);
 
   return (
     <>
@@ -145,9 +155,14 @@ export function Sidebar() {
                   <span className="text-sm font-medium">Storage Used</span>
                 </div>
                 <div className="w-full h-2 bg-[rgb(var(--muted))] rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-rose-500 to-pink-500 rounded-full" style={{ width: '35%' }} />
+                  <div
+                    className="h-full bg-gradient-to-r from-rose-500 to-pink-500 rounded-full transition-all"
+                    style={{ width: `${Math.min((storageUsed / storageLimit) * 100, 100)}%` }}
+                  />
                 </div>
-                <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">3.5 GB of 10 GB used</p>
+                <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
+                  {formatFileSize(storageUsed)} of {formatFileSize(storageLimit)} used
+                </p>
               </div>
             </div>
           </motion.aside>

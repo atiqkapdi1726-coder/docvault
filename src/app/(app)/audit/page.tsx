@@ -6,7 +6,7 @@ import { useAppStore } from '@/lib/stores/appStore';
 import { auditService } from '@/lib/services/audit';
 import { formatDateTime } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Shield, Filter } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import type { AuditLog } from '@/lib/types';
 
 export default function AuditPage() {
