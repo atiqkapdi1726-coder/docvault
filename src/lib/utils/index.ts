@@ -11,20 +11,45 @@ export function generateToken(): string {
   return uuidv4().replace(/-/g, '') + Date.now().toString(36);
 }
 
-export function formatDate(dateString: string): string {
-  return format(parseISO(dateString), 'MMM d, yyyy');
+export function formatDate(dateString: unknown): string {
+  try {
+    return format(parseISO(toISODate(dateString)), 'MMM d, yyyy');
+  } catch {
+    return '';
+  }
 }
 
-export function formatDateTime(dateString: string): string {
-  return format(parseISO(dateString), 'MMM d, yyyy h:mm a');
+export function formatDateTime(dateString: unknown): string {
+  try {
+    return format(parseISO(toISODate(dateString)), 'MMM d, yyyy h:mm a');
+  } catch {
+    return '';
+  }
 }
 
-export function formatRelativeTime(dateString: string): string {
-  return formatDistanceToNow(parseISO(dateString), { addSuffix: true });
+export function toISODate(value: unknown): string {
+  if (!value) return new Date().toISOString();
+  if (typeof value === 'string') return value;
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === 'object' && value !== null && 'toDate' in value) {
+    return (value as { toDate: () => Date }).toDate().toISOString();
+  }
+  if (typeof value === 'object' && value !== null && 'seconds' in value) {
+    return new Date((value as { seconds: number }).seconds * 1000).toISOString();
+  }
+  return new Date().toISOString();
 }
 
-export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
+export function formatRelativeTime(dateString: unknown): string {
+  try {
+    return formatDistanceToNow(parseISO(toISODate(dateString)), { addSuffix: true });
+  } catch {
+    return 'recently';
+  }
+}
+
+export function formatFileSize(bytes: number | undefined | null): string {
+  if (!bytes || bytes === 0) return '0 Bytes';
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));

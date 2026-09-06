@@ -44,15 +44,16 @@ export default function Error({
           An unexpected error occurred while rendering this page.
         </motion.p>
 
-        {error?.digest && (
-          <motion.p
+        {(error?.message || error?.digest) && (
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-xs text-[rgb(var(--muted-foreground))] font-mono bg-[rgb(var(--muted))] rounded-lg px-3 py-2 mb-6"
+            className="text-xs text-left text-[rgb(var(--muted-foreground))] font-mono bg-[rgb(var(--muted))] rounded-lg px-3 py-2 mb-6 max-h-48 overflow-auto"
           >
-            Error: {error.digest}
-          </motion.p>
+            {error?.digest && <p className="mb-1">Error: {error.digest}</p>}
+            {error?.message && <p>{error.message}</p>}
+          </motion.div>
         )}
 
         <motion.div

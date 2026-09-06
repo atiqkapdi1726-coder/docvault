@@ -26,11 +26,11 @@
       ]
     },
     {
-      "collectionGroup": "comments",
+      "collectionGroup": "folders",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "documentId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "ASCENDING" }
+        { "fieldPath": "workspaceId", "order": "ASCENDING" },
+        { "fieldPath": "name", "order": "ASCENDING" }
       ]
     },
     {
@@ -40,6 +40,14 @@
         { "fieldPath": "workspaceId", "order": "ASCENDING" },
         { "fieldPath": "parentId", "order": "ASCENDING" },
         { "fieldPath": "name", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "comments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "documentId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
       ]
     }
   ],
