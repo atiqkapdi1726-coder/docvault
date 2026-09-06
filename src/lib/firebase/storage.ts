@@ -1,3 +1,5 @@
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
+import { storage } from './config';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface UploadResult {
@@ -9,88 +11,72 @@ export interface UploadResult {
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
-function extractKeyFromUrl(fileUrl: string): string | null {
-  if (fileUrl.startsWith('r2://')) {
-    return fileUrl.replace('r2://', '');
-  }
-  return null;
-}
-
 export const storageService = {
   uploadFile: async (
     file: File,
     path: string,
     onProgress?: (progress: number) => void
   ): Promise<UploadResult> => {
+    if (!storage) throw new Error('Firebase Storage not initialized');
+
     if (file.size > MAX_FILE_SIZE) {
       throw new Error(
         `File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max size is 50MB.`
       );
     }
 
-    onProgress?.(10);
+    const fileId = uuidv4();
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storagePath = `${path}/${fileId}_${safeName}`;
+    const storageRef = ref(storage, storagePath);
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('path', path);
+    return new Promise((resolve, reject) => {
+      const uploadTask = uploadBytesResumable(storageRef, file);
 
-    onProgress?.(30);
-
-    const response = await fetch('/api/storage/upload', {
-      method: 'POST',
-      body: formData,
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = Math.round(
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          );
+          onProgress?.(progress);
+        },
+        (error) => {
+          reject(new Error(`Upload failed: ${error.message}`));
+        },
+        async () => {
+          try {
+            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve({
+              fileId: storagePath,
+              fileUrl: downloadUrl,
+              fileSize: file.size,
+              contentType: file.type || 'application/octet-stream',
+            });
+          } catch (error) {
+            reject(new Error(`Failed to get download URL: ${error}`));
+          }
+        }
+      );
     });
-
-    onProgress?.(80);
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Upload failed');
-    }
-
-    const result = await response.json();
-    onProgress?.(100);
-
-    return {
-      fileId: result.fileKey,
-      fileUrl: result.fileUrl,
-      fileSize: result.fileSize,
-      contentType: result.contentType,
-    };
   },
 
   downloadFile: async (fileUrl: string): Promise<string | null> => {
-    const key = extractKeyFromUrl(fileUrl);
-    if (!key) {
-      if (fileUrl.startsWith('http')) return fileUrl;
-      return null;
-    }
-
-    const response = await fetch(`/api/storage/download?key=${encodeURIComponent(key)}`);
-    if (!response.ok) return null;
-
-    const result = await response.json();
-    return result.url || null;
+    return fileUrl;
   },
 
   deleteFile: async (fileUrl: string) => {
-    const key = extractKeyFromUrl(fileUrl);
-    if (!key) return;
-
-    await fetch(`/api/storage/delete?key=${encodeURIComponent(key)}`, {
-      method: 'DELETE',
-    });
+    if (!storage) return;
+    try {
+      const storageRef = ref(storage, fileUrl);
+      await deleteObject(storageRef);
+    } catch (error) {
+      console.error('Failed to delete file:', error);
+    }
   },
 
   getDownloadURL: async (fileUrl: string) => {
-    const key = extractKeyFromUrl(fileUrl);
-    if (!key) return fileUrl;
-
-    const response = await fetch(`/api/storage/download?key=${encodeURIComponent(key)}`);
-    if (!response.ok) return fileUrl;
-
-    const result = await response.json();
-    return result.url || fileUrl;
+    return fileUrl;
   },
 };
 

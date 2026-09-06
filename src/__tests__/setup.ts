@@ -69,12 +69,17 @@ vi.mock('firebase/firestore', () => ({
 }));
 
 vi.mock('firebase/storage', () => ({
-  getStorage: vi.fn(),
+  getStorage: vi.fn(() => ({})),
   connectStorageEmulator: vi.fn(),
-  ref: vi.fn(),
-  uploadBytesResumable: vi.fn(),
-  getDownloadURL: vi.fn(),
-  deleteObject: vi.fn(),
+  ref: vi.fn((_storage: any, path: string) => ({ _path: path })),
+  uploadBytesResumable: vi.fn(() => ({
+    on: vi.fn((_event: string, _error: () => void, complete: () => Promise<void>) => {
+      complete();
+    }),
+    snapshot: { ref: {} },
+  })),
+  getDownloadURL: vi.fn(() => Promise.resolve('https://firebasestorage.googleapis.com/test-file')),
+  deleteObject: vi.fn(() => Promise.resolve()),
 }));
 
 vi.mock('framer-motion', () => {

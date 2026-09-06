@@ -66,25 +66,6 @@ export default function DocumentDetailPage() {
     setSharedLinks(links as SharedLink[]);
   };
 
-  const handleDownload = async (url: string, fileName: string) => {
-    if (!url.startsWith('r2://')) {
-      window.open(url, '_blank');
-      return;
-    }
-    const key = url.replace('r2://', '');
-    const res = await fetch(`/api/storage/download?key=${encodeURIComponent(key)}`);
-    if (res.ok) {
-      const data = await res.json();
-      const link = document.createElement('a');
-      link.href = data.url;
-      link.download = fileName;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
-
   const handleAddTag = async () => {
     if (!newTag.trim() || !doc) return;
     const tags = [...doc.tags, newTag.trim()];
@@ -145,9 +126,9 @@ export default function DocumentDetailPage() {
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <button onClick={() => handleDownload(doc.fileUrl, doc.name)} className="btn-primary flex items-center gap-2 text-sm">
+              <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-primary flex items-center gap-2 text-sm">
                 <Download size={16} /> Download
-              </button>
+              </a>
               <button onClick={() => setShowShare(!showShare)} className="btn-secondary flex items-center gap-2 text-sm">
                 <Share2 size={16} /> Share
               </button>
@@ -209,9 +190,9 @@ export default function DocumentDetailPage() {
                       {formatFileSize(v.fileSize)} · {formatRelativeTime(v.uploadedAt)}
                     </p>
                   </div>
-                  <button onClick={() => handleDownload(v.fileUrl, `${doc.name} v${v.version}`)} className="btn-ghost text-sm">
+                  <a href={v.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost text-sm">
                     <Download size={14} />
-                  </button>
+                  </a>
                 </div>
               ))}
               {(!doc.versions || doc.versions.length === 0) && (
