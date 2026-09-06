@@ -16,6 +16,7 @@ import { folderService } from '@/lib/services/folder';
 import { documentService } from '@/lib/services/document';
 import Link from 'next/link';
 import { UploadZone } from '@/components/documents/UploadZone';
+import { toast } from '@/components/ui/Toaster';
 
 export default function DocumentsPage() {
   const { currentWorkspace, user } = useAppStore();
@@ -60,8 +61,12 @@ export default function DocumentsPage() {
   };
 
   const handleDeleteDoc = async (docId: string) => {
-    await documentService.deleteDocument(docId);
-    loadDocuments();
+    try {
+      await documentService.archiveDocument(docId);
+      toast('Document moved to Trash', 'info');
+    } catch {
+      toast('Failed to move document to Trash', 'error');
+    }
     setContextMenu(null);
   };
 
@@ -261,15 +266,19 @@ export default function DocumentsPage() {
                                     <Eye size={14} /> View
                                   </Link>
                                   {doc.fileUrl && (
-                                    <a
-                                      href={doc.fileUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      onClick={() => setContextMenu(null)}
+                                    <button
+                                      onClick={async () => {
+                                        setContextMenu(null);
+                                        try {
+                                          await documentService.downloadDocument(doc);
+                                        } catch {
+                                          toast('Download failed', 'error');
+                                        }
+                                      }}
                                       className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]"
                                     >
                                       <Download size={14} /> Download
-                                    </a>
+                                    </button>
                                   )}
                                   <button
                                     onClick={() => {

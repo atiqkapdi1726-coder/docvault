@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { documentService } from '@/lib/services/document';
 import type { Document } from '@/lib/types';
 import { Trash2, RotateCcw, FileText, AlertTriangle } from 'lucide-react';
+import { toast } from '@/components/ui/Toaster';
 
 export default function TrashPage() {
   const { currentWorkspace } = useAppStore();
@@ -17,8 +18,8 @@ export default function TrashPage() {
   const loadTrash = async () => {
     if (!currentWorkspace) return;
     try {
-      const allDocs = await documentService.getDocuments(currentWorkspace.id);
-      setTrashDocs((allDocs as Document[]).filter((d) => d.isArchived === true));
+      const archived = await documentService.getArchivedDocuments(currentWorkspace.id);
+      setTrashDocs(archived as Document[]);
     } catch {} finally {
       setLoading(false);
     }
@@ -30,16 +31,23 @@ export default function TrashPage() {
 
   const handleRestore = async (doc: Document) => {
     try {
-      await documentService.updateDocument(doc.id, { isArchived: false } as Partial<Document>);
+      await documentService.restoreDocument(doc.id);
       setTrashDocs((prev) => prev.filter((d) => d.id !== doc.id));
-    } catch {}
+      toast('Document restored', 'success');
+    } catch {
+      toast('Failed to restore document', 'error');
+    }
   };
 
   const handlePermanentDelete = async (doc: Document) => {
+    if (!window.confirm(`Permanently delete "${doc.name}"? This cannot be undone.`)) return;
     try {
       await documentService.deleteDocument(doc.id);
       setTrashDocs((prev) => prev.filter((d) => d.id !== doc.id));
-    } catch {}
+      toast('Document permanently deleted', 'success');
+    } catch {
+      toast('Failed to delete document', 'error');
+    }
   };
 
   return (

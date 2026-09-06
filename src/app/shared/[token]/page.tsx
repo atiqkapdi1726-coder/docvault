@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { documentService } from '@/lib/services/document';
+import { storageService } from '@/lib/firebase/storage';
 import { formatFileSize, formatDate, getFileExtension } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { FileText, Download, Lock, Clock, AlertCircle } from 'lucide-react';
@@ -149,14 +150,25 @@ export default function SharedDocumentPage() {
               </div>
             </div>
             {document?.fileUrl && (
-              <a
-                href={document.fileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={async () => {
+                  try {
+                    const dataUrl = await storageService.downloadFile(document.fileUrl!);
+                    if (!dataUrl) throw new Error('not found');
+                    const a = window.document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = document.name;
+                    window.document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                  } catch {
+                    window.open(document.fileUrl!, '_blank');
+                  }
+                }}
                 className="btn-primary flex items-center gap-2"
               >
                 <Download size={16} /> Download
-              </a>
+              </button>
             )}
           </div>
 

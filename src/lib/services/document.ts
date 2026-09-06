@@ -1,10 +1,14 @@
 import { firestoreService } from '../firebase/firestore';
+import { storageService } from '../firebase/storage';
 import type { Document, Folder, DocumentVersion, SharedLink } from '../types';
 import { generateToken } from '../utils';
 
 export const documentService = {
   getDocuments: async (workspaceId: string, folderId?: string) => {
-    const conditions: [string, string, unknown][] = [['workspaceId', '==', workspaceId]];
+    const conditions: [string, string, unknown][] = [
+      ['workspaceId', '==', workspaceId],
+      ['isArchived', '==', false],
+    ];
     if (folderId) {
       conditions.push(['folderId', '==', folderId]);
     } else {
@@ -15,6 +19,36 @@ export const documentService = {
       orderByField: 'updatedAt',
       orderByDirection: 'desc',
     }) as Promise<Document[]>;
+  },
+
+  getAllDocuments: async (workspaceId: string) => {
+    const all = await firestoreService.getDocs('documents', {
+      conditions: [['workspaceId', '==', workspaceId]],
+    });
+    return (all as Document[]).filter((d) => d.isArchived !== true);
+  },
+
+  getArchivedDocuments: async (workspaceId: string) => {
+    const all = await firestoreService.getDocs('documents', {
+      conditions: [['workspaceId', '==', workspaceId]],
+    });
+    return (all as Document[]).filter((d) => d.isArchived === true);
+  },
+
+  // Real-time subscription to all workspace documents (archived filtered client-side)
+  subscribeToDocuments: (
+    workspaceId: string,
+    callback: (docs: Document[]) => void
+  ) => {
+    return firestoreService.subscribe(
+      'documents',
+      {
+        conditions: [['workspaceId', '==', workspaceId]],
+        orderByField: 'updatedAt',
+        orderByDirection: 'desc',
+      },
+      (data) => callback((data as Document[]).filter((d) => d.isArchived !== true))
+    );
   },
 
   getDocument: async (docId: string) => {
@@ -30,8 +64,39 @@ export const documentService = {
     await firestoreService.updateDoc('documents', docId, data);
   },
 
+  // Soft delete — moves document to Trash (recoverable)
+  archiveDocument: async (docId: string) => {
+    await firestoreService.updateDoc('documents', docId, { isArchived: true });
+  },
+
+  restoreDocument: async (docId: string) => {
+    await firestoreService.updateDoc('documents', docId, { isArchived: false });
+  },
+
+  // Permanent delete — removes document record AND stored file blob
   deleteDocument: async (docId: string) => {
+    const doc = (await firestoreService.getDoc('documents', docId)) as
+      | (Document & { fileUrl?: string })
+      | null;
+    if (doc?.fileUrl) {
+      try {
+        await storageService.deleteFile(doc.fileUrl);
+      } catch {}
+    }
     await firestoreService.deleteDoc('documents', docId);
+  },
+
+  // Downloads the Base64-stored file and triggers a browser download
+  downloadDocument: async (doc: Pick<Document, 'name' | 'fileUrl'>) => {
+    if (!doc.fileUrl) throw new Error('No file attached to this document');
+    const dataUrl = await storageService.downloadFile(doc.fileUrl);
+    if (!dataUrl) throw new Error('File data not found');
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = doc.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   },
 
   addVersion: async (docId: string, version: DocumentVersion) => {
@@ -68,14 +133,17 @@ export const documentService = {
     return (allDocs as Document[]).filter((doc: Document & { isStarred?: boolean }) => (doc as Document & { isStarred?: boolean }).isStarred);
   },
 
-  createShareLink: async (data: Omit<SharedLink, 'id' | 'token' | 'accessCount' | 'isActive' | 'createdAt'>) => {
+  createShareLink: async (
+    data: Omit<SharedLink, 'id' | 'token' | 'accessCount' | 'isActive' | 'createdAt'>
+  ): Promise<{ id: string; token: string }> => {
+    const token = generateToken();
     const id = await firestoreService.addDoc('sharedLinks', {
       ...data,
-      token: generateToken(),
+      token,
       accessCount: 0,
       isActive: true,
     });
-    return id;
+    return { id, token };
   },
 
   getShareLink: async (token: string) => {

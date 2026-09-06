@@ -1,27 +1,32 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAppStore } from '@/lib/stores/appStore';
 import { documentService } from '@/lib/services/document';
+import { storageService } from '@/lib/firebase/storage';
 import { commentService } from '@/lib/services/comment';
-import { formatFileSize, formatRelativeTime, formatDate, getFileExtension, generateToken, cn } from '@/lib/utils';
+import { formatFileSize, formatRelativeTime, formatDate, getFileExtension, cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import {
   FileText, Download, Share2, Trash2, Tag, Clock, Eye,
   MessageSquare, Plus, Send, Link2, Copy, Check, Lock,
-  History, X, Calendar,
+  History, X, Calendar, FileImage, RotateCcw,
 } from 'lucide-react';
 import type { Document, Comment, SharedLink } from '@/lib/types';
 import { CommentSection } from '@/components/comments/CommentSection';
+import { toast } from '@/components/ui/Toaster';
 
 export default function DocumentDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const docId = params.id as string;
   const { user } = useAppStore();
   const [doc, setDoc] = useState<Document | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fileData, setFileData] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
   const [showTagEdit, setShowTagEdit] = useState(false);
@@ -44,14 +49,36 @@ export default function DocumentDetailPage() {
     if (docId) loadDoc();
   }, [docId]);
 
+  // Load Base64 file data for inline preview + working download
+  useEffect(() => {
+    if (!doc?.fileUrl) return;
+    let cancelled = false;
+    setPreviewLoading(true);
+    storageService.downloadFile(doc.fileUrl).then((data) => {
+      if (!cancelled) setFileData(data);
+    }).catch(() => {}).finally(() => {
+      if (!cancelled) setPreviewLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [doc?.fileUrl]);
+
+  const isPreviewable =
+    fileData &&
+    (doc?.mimeType?.startsWith('image/') ||
+     doc?.mimeType === 'application/pdf' ||
+     doc?.mimeType?.startsWith('text/') ||
+     doc?.mimeType === 'application/json');
+
+  const isTextPreview =
+    fileData && doc?.mimeType?.startsWith('text/') || doc?.mimeType === 'application/json';
+
   const handleCreateShareLink = async () => {
     if (!doc || !user) return;
-    const token = generateToken();
     const expiryDate = shareExpiry
       ? new Date(Date.now() + parseInt(shareExpiry) * 24 * 60 * 60 * 1000).toISOString()
       : null;
 
-    await documentService.createShareLink({
+    const { token } = await documentService.createShareLink({
       documentId: doc.id,
       workspaceId: doc.workspaceId,
       createdBy: user.uid,
@@ -62,8 +89,30 @@ export default function DocumentDetailPage() {
 
     const link = `${window.location.origin}/shared/${token}`;
     setShareLink(link);
+    toast('Share link created', 'success');
     const links = await documentService.getSharedLinksForDocument(doc.id);
     setSharedLinks(links as SharedLink[]);
+  };
+
+  const handleDownload = async () => {
+    if (!doc) return;
+    try {
+      await documentService.downloadDocument(doc);
+      toast('Download started', 'success');
+    } catch {
+      toast('Download failed', 'error');
+    }
+  };
+
+  const handleArchive = async () => {
+    if (!doc) return;
+    try {
+      await documentService.archiveDocument(doc.id);
+      toast('Document moved to Trash', 'info');
+      router.push('/documents');
+    } catch {
+      toast('Failed to archive document', 'error');
+    }
   };
 
   const handleAddTag = async () => {
@@ -126,9 +175,9 @@ export default function DocumentDetailPage() {
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-primary flex items-center gap-2 text-sm">
+              <button onClick={handleDownload} className="btn-primary flex items-center gap-2 text-sm">
                 <Download size={16} /> Download
-              </a>
+              </button>
               <button onClick={() => setShowShare(!showShare)} className="btn-secondary flex items-center gap-2 text-sm">
                 <Share2 size={16} /> Share
               </button>
@@ -138,9 +187,55 @@ export default function DocumentDetailPage() {
               <button onClick={() => setShowTagEdit(!showTagEdit)} className="btn-secondary flex items-center gap-2 text-sm">
                 <Tag size={16} /> Tags
               </button>
+              <button onClick={handleArchive} className="btn-secondary flex items-center gap-2 text-sm text-red-600">
+                <Trash2 size={16} /> Delete
+              </button>
             </div>
           </div>
         </motion.div>
+
+        {/* Inline file preview */}
+        {previewLoading ? (
+          <div className="card p-12 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[rgb(var(--primary))]" />
+          </div>
+        ) : isPreviewable ? (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="card overflow-hidden">
+            <div className="p-4 border-b border-[rgb(var(--border))] flex items-center justify-between">
+              <h3 className="font-semibold flex items-center gap-2">
+                {doc.mimeType?.startsWith('image/') ? <FileImage size={18} className="text-[rgb(var(--primary))]" /> : <FileText size={18} className="text-[rgb(var(--primary))]" />}
+                Preview
+              </h3>
+              <span className="text-xs text-[rgb(var(--muted-foreground))]">
+                {doc.mimeType}
+              </span>
+            </div>
+            <div className="p-4">
+              {doc.mimeType?.startsWith('image/') && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={fileData!} alt={doc.name} className="max-w-full max-h-[600px] mx-auto rounded-lg" />
+              )}
+              {doc.mimeType === 'application/pdf' && (
+                <iframe src={fileData!} title={doc.name} className="w-full h-[600px] rounded-lg border-0" />
+              )}
+              {isTextPreview && (
+                <pre className="text-sm whitespace-pre-wrap max-h-[600px] overflow-auto bg-[rgb(var(--muted))] rounded-lg p-4">
+                  {decodeURIComponent(escape(window.atob(fileData!.split(',')[1] || '')))}
+                </pre>
+              )}
+            </div>
+          </motion.div>
+        ) : doc.fileUrl ? (
+          <div className="card p-8 text-center">
+            <FileText size={40} className="mx-auto text-[rgb(var(--muted-foreground))] mb-3 opacity-50" />
+            <p className="text-sm text-[rgb(var(--muted-foreground))]">
+              No inline preview available for this file type
+            </p>
+            <button onClick={handleDownload} className="btn-primary mt-4 inline-flex items-center gap-2 text-sm">
+              <Download size={16} /> Download to view
+            </button>
+          </div>
+        ) : null}
 
         {showShare && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card p-5 space-y-4">

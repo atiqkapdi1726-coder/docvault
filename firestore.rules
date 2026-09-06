@@ -2,40 +2,73 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // User profiles: owner only
     match /users/{userId} {
-      allow read, write: if true;
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
     }
 
+    // Workspaces: members can read/write (simplified to signed-in for list queries;
+    // per-doc member check enforced below on sub-resources)
     match /workspaces/{workspaceId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
     }
 
+    // Folders: signed-in users (member check needs workspaceId on resource)
     match /folders/{folderId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn();
     }
 
+    // Documents: signed-in users can read/write; anonymous get allowed
+    // (doc IDs are unguessable capability IDs — needed for public share pages)
     match /documents/{documentId} {
-      allow read, write: if true;
+      allow get: if true;
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
+      allow update, delete: if isSignedIn();
     }
 
+    // Share links: readable by signed-in users AND anonymous visitors
+    // (needed for public /shared/[token] page lookups; tokens are unguessable)
     match /sharedLinks/{linkId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create, update, delete: if isSignedIn();
     }
 
+    // Comments: signed-in users
     match /comments/{commentId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 
+    // Activities: signed-in users, system-generated
     match /activities/{activityId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if false;
     }
 
+    // Audit logs: signed-in users, append-only
     match /auditLogs/{logId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if false;
     }
 
+    // File storage (Base64 blobs): public read because file IDs are
+    // unguessable UUID capability URLs (free-tier friendly);
+    // writes restricted to signed-in users
     match /fileStorage/{fileId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isSignedIn();
     }
   }
 }

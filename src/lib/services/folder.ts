@@ -14,6 +14,21 @@ export const folderService = {
     }) as Promise<Folder[]>;
   },
 
+  subscribeToFolders: (
+    workspaceId: string,
+    callback: (folders: Folder[]) => void
+  ) => {
+    return firestoreService.subscribe(
+      'folders',
+      {
+        conditions: [['workspaceId', '==', workspaceId]],
+        orderByField: 'name',
+        orderByDirection: 'asc',
+      },
+      (data) => callback(data as Folder[])
+    );
+  },
+
   getFolder: async (folderId: string) => {
     return firestoreService.getDoc('folders', folderId) as Promise<Folder | null>;
   },

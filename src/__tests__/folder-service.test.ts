@@ -10,10 +10,11 @@ describe('folderService', () => {
     expect(typeof folderService.deleteFolder).toBe('function');
     expect(typeof folderService.moveFolder).toBe('function');
     expect(typeof folderService.getAllFoldersRecursive).toBe('function');
+    expect(typeof folderService.subscribeToFolders).toBe('function');
   });
 
-  it('has 7 service methods', () => {
+  it('has 8 service methods', () => {
     const methods = Object.keys(folderService).filter(k => typeof (folderService as any)[k] === 'function');
-    expect(methods.length).toBe(7);
+    expect(methods.length).toBe(8);
   });
 });

@@ -72,9 +72,25 @@ export function useFolders() {
     setFolders(fs as Folder[]);
   }, [currentWorkspace, setFolders]);
 
+  // Real-time folder updates
   useEffect(() => {
-    if (currentWorkspace) loadFolders(null);
-  }, [currentWorkspace, loadFolders]);
+    if (!currentWorkspace) return;
+    let unsub: (() => void) | undefined;
+    try {
+      const result = folderService.subscribeToFolders(
+        currentWorkspace.id,
+        (fs) => setFolders(fs as Folder[])
+      );
+      if (typeof result === 'function') unsub = result;
+    } catch (error) {
+      console.warn('Folder subscription failed, falling back to fetch:', error);
+      loadFolders(null);
+    }
+    return () => {
+      try { if (unsub) unsub(); } catch {}
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentWorkspace?.id]);
 
   return {
     folders,
@@ -90,16 +106,29 @@ export function useDocuments(folderId?: string | null) {
 
   const loadDocuments = useCallback(async () => {
     if (!currentWorkspace) return;
-    const docs = await documentService.getDocuments(
-      currentWorkspace.id,
-      folderId || undefined
-    );
+    const docs = await documentService.getAllDocuments(currentWorkspace.id);
     setDocuments(docs as Document[]);
-  }, [currentWorkspace, folderId, setDocuments]);
+  }, [currentWorkspace, setDocuments]);
 
+  // Real-time document updates for the workspace
   useEffect(() => {
-    if (currentWorkspace) loadDocuments();
-  }, [currentWorkspace, loadDocuments]);
+    if (!currentWorkspace) return;
+    let unsub: (() => void) | undefined;
+    try {
+      const result = documentService.subscribeToDocuments(
+        currentWorkspace.id,
+        (docs) => setDocuments(docs as Document[])
+      );
+      if (typeof result === 'function') unsub = result;
+    } catch (error) {
+      console.warn('Document subscription failed, falling back to fetch:', error);
+      loadDocuments();
+    }
+    return () => {
+      try { if (unsub) unsub(); } catch {}
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentWorkspace?.id]);
 
   const uploadFile = useCallback(
     async (file: File, targetFolderId?: string | null) => {
