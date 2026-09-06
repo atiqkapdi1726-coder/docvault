@@ -108,7 +108,7 @@ export function useDocuments(folderId?: string | null) {
           name: file.name,
           folderId: targetFolderId || null,
           workspaceId: currentWorkspace.id,
-          fileUrl: result.downloadURL,
+          fileUrl: result.fileUrl,
           fileSize: result.fileSize,
           mimeType: result.contentType,
           thumbnailUrl: null,
@@ -118,7 +118,7 @@ export function useDocuments(folderId?: string | null) {
           versions: [
             {
               version: 1,
-              fileUrl: result.downloadURL,
+              fileUrl: result.fileUrl,
               fileSize: result.fileSize,
               uploadedBy: user.uid,
               uploadedAt: new Date().toISOString(),

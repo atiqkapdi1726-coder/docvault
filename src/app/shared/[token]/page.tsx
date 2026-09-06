@@ -144,14 +144,23 @@ export default function SharedDocumentPage() {
               </div>
             </div>
             {document?.fileUrl && (
-              <a
-                href={document.fileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={async () => {
+                  let url = document.fileUrl;
+                  if (url.startsWith('r2://')) {
+                    const key = url.replace('r2://', '');
+                    const res = await fetch(`/api/storage/download?key=${encodeURIComponent(key)}`);
+                    if (res.ok) {
+                      const data = await res.json();
+                      url = data.url;
+                    }
+                  }
+                  window.open(url, '_blank');
+                }}
                 className="btn-primary flex items-center gap-2"
               >
                 <Download size={16} /> Download
-              </a>
+              </button>
             )}
           </div>
 

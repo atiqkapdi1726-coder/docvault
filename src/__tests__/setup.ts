@@ -26,7 +26,6 @@ vi.mock('@/lib/firebase/config', () => ({
   app: {},
   auth: {},
   db: {},
-  storage: {},
 }));
 
 vi.mock('firebase/app', () => ({

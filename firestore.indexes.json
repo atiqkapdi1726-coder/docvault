@@ -34,13 +34,6 @@
       ]
     },
     {
-      "collectionGroup": "sharedLinks",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "token", "order": "ASCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "folders",
       "queryScope": "COLLECTION",
       "fields": [

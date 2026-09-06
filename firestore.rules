@@ -1,60 +1,54 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can only read/write their own user document
+
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
     }
-    
-    // Workspaces - members can read, only admin can write
+
     match /workspaces/{workspaceId} {
-      allow read: if request.auth != null && 
-        exists(/databases/$(database)/documents/workspaces/$(workspaceId)) &&
-        request.auth.uid in get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.members[*].uid;
+      allow read: if request.auth != null;
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && 
-        request.auth.uid == resource.data.ownerId;
+      allow update: if request.auth != null && request.auth.uid == resource.data.ownerId;
+      allow delete: if request.auth != null && request.auth.uid == resource.data.ownerId;
     }
-    
-    // Folders - workspace members can read, creators/admins can write
+
     match /folders/{folderId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
     }
-    
-    // Documents - workspace members can read, creators can write
+
     match /documents/{documentId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
-    
-    // Shared links - anyone with token can read, creator can write
+
     match /sharedLinks/{linkId} {
       allow read: if request.auth != null || resource.data.isActive == true;
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.createdBy;
+      allow update: if request.auth != null && request.auth.uid == resource.data.createdBy;
+      allow delete: if request.auth != null && request.auth.uid == resource.data.createdBy;
     }
-    
-    // Comments - workspace members can read/write
+
     match /comments/{commentId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
       allow update: if request.auth != null && request.auth.uid == resource.data.userId;
       allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
-    
-    // Activities - workspace members can read, system can write
+
     match /activities/{activityId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
       allow update, delete: if false;
     }
-    
-    // Audit logs - workspace members can read, system can write
+
     match /auditLogs/{logId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;

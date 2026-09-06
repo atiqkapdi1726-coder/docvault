@@ -60,6 +60,7 @@ export interface Document {
   aiTags: string[];
   isArchived?: boolean;
   isStarred?: boolean;
+  storageType?: 'firestore' | 'external';
 }
 
 export interface DocumentVersion {
