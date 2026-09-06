@@ -1,26 +1,158 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-rose-50: #fff1f2;
+  --color-rose-100: #ffe4e6;
+  --color-rose-200: #fecdd3;
+  --color-rose-300: #fda4af;
+  --color-rose-400: #fb7185;
+  --color-rose-500: #f43f5e;
+  --color-rose-600: #e11d48;
+  --color-rose-700: #be123c;
+  --color-rose-800: #9f1239;
+  --color-rose-900: #881337;
+  --color-rose-950: #4c0519;
+  --color-pink-50: #fdf2f8;
+  --color-pink-100: #fce7f3;
+  --color-pink-200: #fbcfe8;
+  --color-pink-300: #f9a8d4;
+  --color-pink-400: #f472b6;
+  --color-pink-500: #ec4899;
+  --color-pink-600: #db2777;
+  --color-pink-700: #be185d;
+  --color-pink-800: #9d174d;
+  --color-pink-900: #831843;
+  --color-pink-950: #500724;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 255 245 247;
+    --foreground: 15 23 42;
+    --card: 255 255 255;
+    --card-foreground: 15 23 42;
+    --primary: 244 63 94;
+    --primary-foreground: 255 255 255;
+    --secondary: 252 231 243;
+    --secondary-foreground: 157 23 93;
+    --muted: 241 245 249;
+    --muted-foreground: 100 116 139;
+    --accent: 236 72 153;
+    --accent-foreground: 255 255 255;
+    --destructive: 239 68 68;
+    --destructive-foreground: 255 255 255;
+    --border: 226 232 240;
+    --input: 226 232 240;
+    --ring: 244 63 94;
+    --radius: 0.5rem;
+    --sidebar-bg: 255 241 242;
+    --sidebar-hover: 254 205 211;
+  }
+
+  .dark {
+    --background: 15 23 42;
+    --foreground: 241 245 249;
+    --card: 30 41 59;
+    --card-foreground: 241 245 249;
+    --primary: 244 63 94;
+    --primary-foreground: 255 255 255;
+    --secondary: 76 5 25;
+    --secondary-foreground: 253 164 175;
+    --muted: 51 65 85;
+    --muted-foreground: 148 163 184;
+    --accent: 219 39 119;
+    --accent-foreground: 255 255 255;
+    --destructive: 220 38 38;
+    --destructive-foreground: 255 255 255;
+    --border: 51 65 85;
+    --input: 51 65 85;
+    --ring: 244 63 94;
+    --sidebar-bg: 15 23 42;
+    --sidebar-hover: 30 41 59;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    border-color: rgb(var(--border));
+  }
+  body {
+    background-color: rgb(var(--background));
+    color: rgb(var(--foreground));
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out;
+  }
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out;
+  }
+  .glass {
+    backdrop-filter: blur(12px);
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+  .dark .glass {
+    background-color: rgba(30, 41, 59, 0.8);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[rgb(var(--primary))] text-white px-4 py-2 rounded-lg font-medium hover:bg-[rgb(var(--primary))]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-[rgb(var(--secondary))] text-[rgb(var(--secondary-foreground))] px-4 py-2 rounded-lg font-medium hover:bg-[rgb(var(--secondary))]/80 transition-colors;
+  }
+  .btn-ghost {
+    @apply text-[rgb(var(--muted-foreground))] px-4 py-2 rounded-lg font-medium hover:bg-[rgb(var(--muted))] transition-colors;
+  }
+  .btn-destructive {
+    @apply bg-[rgb(var(--destructive))] text-white px-4 py-2 rounded-lg font-medium hover:bg-[rgb(var(--destructive))]/90 transition-colors;
+  }
+  .card {
+    @apply bg-[rgb(var(--card))] rounded-xl border border-[rgb(var(--border))] shadow-sm;
+  }
+  .input-field {
+    @apply w-full px-4 py-2.5 rounded-lg border border-[rgb(var(--input))] bg-[rgb(var(--card))] text-[rgb(var(--foreground))] placeholder:text-[rgb(var(--muted-foreground))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))] focus:border-transparent transition-all;
+  }
+  .sidebar-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-[rgb(var(--muted-foreground))] hover:bg-[rgb(var(--sidebar-hover))] hover:text-[rgb(var(--foreground))] transition-all cursor-pointer;
+  }
+  .sidebar-item.active {
+    @apply bg-[rgb(var(--primary))]/10 text-[rgb(var(--primary))] font-medium;
+  }
+  .skeleton {
+    @apply bg-[rgb(var(--muted))] rounded animate-pulse;
+  }
 }

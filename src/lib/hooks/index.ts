@@ -1,0 +1,195 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { useAppStore } from '../stores/appStore';
+import { documentService } from '../services/document';
+import { folderService } from '../services/folder';
+import { workspaceService } from '../services/workspace';
+import { activityService } from '../services/activity';
+import { v4 as uuidv4 } from 'uuid';
+import type { Document, Folder, Workspace, Activity, UploadProgress } from '../types';
+import { storageService } from '../firebase/storage';
+
+export function useWorkspace() {
+  const { currentWorkspace, setCurrentWorkspace, workspaces, setWorkspaces, user } = useAppStore();
+
+  const loadWorkspaces = useCallback(async () => {
+    if (!user) return;
+    const ws = await workspaceService.getWorkspaces(user.uid);
+    setWorkspaces(ws as Workspace[]);
+    if (ws.length > 0 && !currentWorkspace) {
+      setCurrentWorkspace(ws[0] as Workspace);
+    }
+  }, [user, setWorkspaces, setCurrentWorkspace, currentWorkspace]);
+
+  useEffect(() => {
+    if (user) loadWorkspaces();
+  }, [user, loadWorkspaces]);
+
+  return { workspaces, currentWorkspace, setCurrentWorkspace, loadWorkspaces };
+}
+
+export function useFolders() {
+  const { currentWorkspace, currentFolder, setCurrentFolder, folders, setFolders } = useAppStore();
+
+  const loadFolders = useCallback(async (parentId?: string | null) => {
+    if (!currentWorkspace) return;
+    const fs = await folderService.getFolders(
+      currentWorkspace.id,
+      parentId !== undefined ? parentId : null
+    );
+    setFolders(fs as Folder[]);
+  }, [currentWorkspace, setFolders]);
+
+  const loadAllFolders = useCallback(async () => {
+    if (!currentWorkspace) return;
+    const fs = await folderService.getAllFoldersRecursive(currentWorkspace.id);
+    setFolders(fs as Folder[]);
+  }, [currentWorkspace, setFolders]);
+
+  useEffect(() => {
+    if (currentWorkspace) loadFolders(null);
+  }, [currentWorkspace, loadFolders]);
+
+  return {
+    folders,
+    currentFolder,
+    setCurrentFolder,
+    loadFolders,
+    loadAllFolders,
+  };
+}
+
+export function useDocuments(folderId?: string | null) {
+  const { currentWorkspace, documents, setDocuments, user } = useAppStore();
+
+  const loadDocuments = useCallback(async () => {
+    if (!currentWorkspace) return;
+    const docs = await documentService.getDocuments(
+      currentWorkspace.id,
+      folderId || undefined
+    );
+    setDocuments(docs as Document[]);
+  }, [currentWorkspace, folderId, setDocuments]);
+
+  useEffect(() => {
+    if (currentWorkspace) loadDocuments();
+  }, [currentWorkspace, loadDocuments]);
+
+  const uploadFile = useCallback(
+    async (file: File, targetFolderId?: string | null) => {
+      if (!currentWorkspace || !user) return null;
+
+      const uploadId = uuidv4();
+      const progressEntry: UploadProgress = {
+        id: uploadId,
+        fileName: file.name,
+        progress: 0,
+        status: 'uploading',
+      };
+
+      useAppStore.getState().addUploadProgress(progressEntry);
+
+      try {
+        const result = await storageService.uploadFile(
+          file,
+          `workspaces/${currentWorkspace.id}/documents`,
+          (progress: number) => {
+            useAppStore.getState().updateUploadProgress(uploadId, { progress });
+          }
+        );
+
+        useAppStore.getState().updateUploadProgress(uploadId, {
+          status: 'processing',
+          progress: 100,
+        });
+
+        const docData: Omit<Document, 'id'> = {
+          name: file.name,
+          folderId: targetFolderId || null,
+          workspaceId: currentWorkspace.id,
+          fileUrl: result.downloadURL,
+          fileSize: result.fileSize,
+          mimeType: result.contentType,
+          thumbnailUrl: null,
+          description: '',
+          tags: [],
+          version: 1,
+          versions: [
+            {
+              version: 1,
+              fileUrl: result.downloadURL,
+              fileSize: result.fileSize,
+              uploadedBy: user.uid,
+              uploadedAt: new Date().toISOString(),
+              changelog: 'Initial upload',
+            },
+          ],
+          createdBy: user.uid,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          metadata: {
+            author: user.displayName || user.email,
+            category: 'general',
+            language: 'en',
+          },
+          aiSummary: null,
+          aiTags: [],
+        };
+
+        const docId = await documentService.createDocument(docData);
+
+        await activityService.logActivity({
+          workspaceId: currentWorkspace.id,
+          documentId: docId as string,
+          userId: user.uid,
+          userName: user.displayName,
+          userPhotoURL: null,
+          action: 'upload',
+          details: `Uploaded ${file.name}`,
+          createdAt: new Date().toISOString(),
+        });
+
+        useAppStore.getState().updateUploadProgress(uploadId, {
+          status: 'complete',
+        });
+
+        setTimeout(() => {
+          useAppStore.getState().removeUploadProgress(uploadId);
+        }, 3000);
+
+        await loadDocuments();
+        return docId;
+      } catch (error) {
+        useAppStore.getState().updateUploadProgress(uploadId, {
+          status: 'error',
+          error: error instanceof Error ? error.message : 'Upload failed',
+        });
+        return null;
+      }
+    },
+    [currentWorkspace, user, loadDocuments]
+  );
+
+  return { documents, loadDocuments, uploadFile };
+}
+
+export function useActivity() {
+  const { currentWorkspace } = useAppStore();
+  const [activities, setActivities] = useState<Activity[]>([]);
+
+  useEffect(() => {
+    if (!currentWorkspace) return;
+
+    const unsubscribe = activityService.subscribeToActivities(
+      currentWorkspace.id,
+      (data) => setActivities(data as unknown as Activity[])
+    );
+
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
+  }, [currentWorkspace]);
+
+  return { activities };
+}
