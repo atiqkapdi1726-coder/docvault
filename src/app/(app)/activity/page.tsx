@@ -4,10 +4,9 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { useActivity } from '@/lib/hooks';
 import { formatRelativeTime } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { ActivitySkeleton } from '@/components/skeletons/Skeletons';
 import {
   Upload, Edit3, Trash2, Share2, Download, MessageSquare,
-  Star, FolderPlus, ArrowRight,
+  Star, ArrowRight, Activity,
 } from 'lucide-react';
 
 const actionIcons: Record<string, any> = {
@@ -44,7 +43,9 @@ export default function ActivityPage() {
         <div className="card">
           {activities.length === 0 ? (
             <div className="p-12 text-center">
-              <ActivitySkeleton />
+              <Activity size={48} className="mx-auto text-[rgb(var(--muted-foreground))] mb-4 opacity-50" />
+              <p className="text-[rgb(var(--muted-foreground))]">No activity yet</p>
+              <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">Activity will appear here when you upload, edit, or share documents</p>
             </div>
           ) : (
             <div className="divide-y divide-[rgb(var(--border))]">

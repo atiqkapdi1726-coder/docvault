@@ -202,13 +202,25 @@ export function useActivity() {
   useEffect(() => {
     if (!currentWorkspace) return;
 
-    const unsubscribe = activityService.subscribeToActivities(
-      currentWorkspace.id,
-      (data) => setActivities(data as unknown as Activity[])
-    );
+    let unsubscribe: (() => void) | undefined;
+
+    try {
+      const unsub = activityService.subscribeToActivities(
+        currentWorkspace.id,
+        (data) => setActivities(data as unknown as Activity[])
+      );
+      if (typeof unsub === 'function') {
+        unsubscribe = unsub;
+      }
+    } catch (error) {
+      console.error('Activity subscription failed, falling back to one-time fetch:', error);
+      activityService.getActivities(currentWorkspace.id).then((data) => {
+        setActivities(data as Activity[]);
+      }).catch(() => {});
+    }
 
     return () => {
-      if (typeof unsubscribe === 'function') unsubscribe();
+      if (unsubscribe) unsubscribe();
     };
   }, [currentWorkspace]);
 

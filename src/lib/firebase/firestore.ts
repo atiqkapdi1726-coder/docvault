@@ -1,4 +1,4 @@
-import { db, auth } from './config';
+import { db } from './config';
 import {
   collection,
   doc,
@@ -91,7 +91,8 @@ export const firestoreService = {
   subscribe: (
     collectionName: string,
     options: FirestoreQueryOptions,
-    callback: (data: DocumentData[]) => void
+    callback: (data: DocumentData[]) => void,
+    onError?: (error: Error) => void
   ) => {
     const constraints: QueryConstraint[] = [];
     if (options.conditions) {
@@ -103,9 +104,16 @@ export const firestoreService = {
       constraints.push(orderBy(options.orderByField, options.orderByDirection || 'desc'));
     }
     const q = query(collection(db, collectionName), ...constraints);
-    return onSnapshot(q, (snapshot) => {
-      callback(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-    });
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        callback(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      },
+      (error) => {
+        console.error(`Subscription error on ${collectionName}:`, error);
+        if (onError) onError(error);
+      }
+    );
   },
 
   getCollectionPath: (...segments: string[]) => segments.join('/'),

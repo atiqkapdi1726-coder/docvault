@@ -3,7 +3,6 @@
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useState } from 'react';
 import { useAppStore } from '@/lib/stores/appStore';
-import { useAuth } from '@/lib/firebase/auth';
 import { useTheme } from '@/components/ui/ThemeProvider';
 import { motion } from 'framer-motion';
 import { Settings as SettingsIcon, Moon, Sun, User, Bell, Shield, Trash2 } from 'lucide-react';
