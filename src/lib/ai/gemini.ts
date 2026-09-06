@@ -1,7 +1,7 @@
 // Server-side Gemini client. API key is read from env and NEVER sent to the client.
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
-const MODEL = 'gemini-2.5-flash';
+const MODEL = 'gemini-3.6-flash';
 
 export function hasGeminiKey(): boolean {
   return !!process.env.GEMINI_API_KEY;
