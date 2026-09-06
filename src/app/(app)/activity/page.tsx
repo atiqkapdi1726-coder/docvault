@@ -26,7 +26,7 @@ const actionColors: Record<string, string> = {
   delete: 'bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400',
   share: 'bg-purple-100 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400',
   download: 'bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400',
-  comment: 'bg-pink-100 text-pink-600 dark:bg-pink-900/20 dark:text-pink-400',
+  comment: 'bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
   star: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400',
   move: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400',
 };

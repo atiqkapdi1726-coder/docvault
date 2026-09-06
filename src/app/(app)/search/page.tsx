@@ -124,8 +124,8 @@ export default function SearchPage() {
                   href={`/documents/${doc.id}`}
                   className="card p-4 flex items-center gap-4 hover:border-[rgb(var(--primary))]/50 transition-all block"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/20 dark:to-pink-900/20 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-bold text-rose-600">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-900/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-bold text-blue-600">
                       {getFileExtension(doc.name).toUpperCase()}
                     </span>
                   </div>

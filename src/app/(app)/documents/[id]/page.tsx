@@ -109,8 +109,8 @@ export default function DocumentDetailPage() {
           <div className="flex flex-col lg:flex-row lg:items-start gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/20 dark:to-pink-900/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-bold text-rose-600">{getFileExtension(doc.name).toUpperCase()}</span>
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-900/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-bold text-blue-600">{getFileExtension(doc.name).toUpperCase()}</span>
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold truncate">{doc.name}</h1>
@@ -224,13 +224,13 @@ export default function DocumentDetailPage() {
         )}
 
         {doc.aiSummary && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="card p-5 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-900/10 dark:to-pink-900/10 border-rose-200 dark:border-rose-800">
-            <p className="text-xs font-medium text-rose-600 dark:text-rose-400 mb-1">AI Summary</p>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="card p-5 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/10 dark:to-blue-900/10 border-blue-200 dark:border-blue-800">
+            <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">AI Summary</p>
             <p className="text-sm">{doc.aiSummary}</p>
             {doc.aiTags && doc.aiTags.length > 0 && (
               <div className="flex gap-1 mt-2">
                 {doc.aiTags.map((tag) => (
-                  <span key={tag} className="px-2 py-0.5 text-xs rounded-full bg-rose-200 dark:bg-rose-800 text-rose-700 dark:text-rose-300">{tag}</span>
+                  <span key={tag} className="px-2 py-0.5 text-xs rounded-full bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-300">{tag}</span>
                 ))}
               </div>
             )}

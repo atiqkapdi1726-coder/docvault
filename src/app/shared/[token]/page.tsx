@@ -84,7 +84,7 @@ export default function SharedDocumentPage() {
 
   if (error && !authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 p-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -100,7 +100,7 @@ export default function SharedDocumentPage() {
 
   if (showPassword && shareLink?.password) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 p-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -128,7 +128,7 @@ export default function SharedDocumentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -136,8 +136,8 @@ export default function SharedDocumentPage() {
       >
         <div className="card p-8">
           <div className="flex items-start gap-4 mb-6">
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/20 dark:to-pink-900/20 flex items-center justify-center flex-shrink-0">
-              <span className="text-lg font-bold text-rose-600">
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-900/20 flex items-center justify-center flex-shrink-0">
+              <span className="text-lg font-bold text-blue-600">
                 {document ? getFileExtension(document.name).toUpperCase() : '?'}
               </span>
             </div>
@@ -177,8 +177,8 @@ export default function SharedDocumentPage() {
           )}
 
           {document?.aiSummary && (
-            <div className="mt-4 p-4 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-900/10 dark:to-pink-900/10 rounded-lg border border-rose-200 dark:border-rose-800">
-              <p className="text-xs font-medium text-rose-600 dark:text-rose-400 mb-1">AI Summary</p>
+            <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/10 dark:to-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">AI Summary</p>
               <p className="text-sm">{document.aiSummary}</p>
             </div>
           )}

@@ -118,7 +118,7 @@ export function UploadZone({ onUpload, folderId }: UploadZoneProps) {
                             ? 'bg-green-500'
                             : progress.status === 'error'
                             ? 'bg-red-500'
-                            : 'bg-gradient-to-r from-rose-500 to-pink-500'
+                            : 'bg-gradient-to-r from-blue-500 to-blue-600'
                         )}
                       />
                     </div>

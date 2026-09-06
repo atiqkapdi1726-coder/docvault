@@ -95,7 +95,7 @@ export default function AnalyticsPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Total Files', value: documents.length, icon: FileText, color: 'from-rose-500 to-pink-500' },
+            { label: 'Total Files', value: documents.length, icon: FileText, color: 'from-blue-500 to-blue-600' },
             { label: 'Total Size', value: formatFileSize(stats.totalSize), icon: HardDrive, color: 'from-violet-500 to-purple-500' },
             { label: 'File Types', value: Object.keys(stats.filesByType).length, icon: BarChart3, color: 'from-blue-500 to-cyan-500' },
             { label: 'Activities', value: activities.length, icon: ActivityIcon, color: 'from-amber-500 to-orange-500' },
@@ -145,7 +145,7 @@ export default function AnalyticsPage() {
                         initial={{ height: 0 }}
                         animate={{ height: `${(item.count / maxUploads) * 100}%` }}
                         transition={{ duration: 0.6, ease: 'easeOut' }}
-                        className="w-full rounded-t-lg bg-gradient-to-t from-rose-500 to-pink-400 min-h-[4px]"
+                        className="w-full rounded-t-lg bg-gradient-to-t from-blue-500 to-blue-400 min-h-[4px]"
                       />
                       <span className="text-[10px] text-[rgb(var(--muted-foreground))]">
                         {item.label}
@@ -195,7 +195,7 @@ export default function AnalyticsPage() {
                             initial={{ width: 0 }}
                             animate={{ width: `${(data.size / (stats.totalSize || 1)) * 100}%` }}
                             transition={{ duration: 0.8, ease: 'easeOut' }}
-                            className="h-full rounded-full bg-gradient-to-r from-rose-500 to-pink-400"
+                            className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400"
                           />
                         </div>
                       </div>

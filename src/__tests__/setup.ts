@@ -24,7 +24,6 @@ vi.mock('next/link', () => {
 
 vi.mock('@/lib/firebase/config', () => ({
   app: {},
-  auth: {},
   db: {},
 }));
 
@@ -37,10 +36,12 @@ vi.mock('firebase/app', () => ({
 vi.mock('firebase/auth', () => ({
   getAuth: vi.fn(),
   connectAuthEmulator: vi.fn(),
-  onAuthStateChanged: vi.fn(),
+  onAuthStateChanged: vi.fn(() => () => {}),
   signInWithEmailAndPassword: vi.fn(),
   createUserWithEmailAndPassword: vi.fn(),
   signInWithPopup: vi.fn(),
+  signInWithRedirect: vi.fn(),
+  getRedirectResult: vi.fn(() => Promise.resolve(null)),
   signOut: vi.fn(),
   sendPasswordResetEmail: vi.fn(),
   updateProfile: vi.fn(),

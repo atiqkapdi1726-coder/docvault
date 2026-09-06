@@ -62,7 +62,7 @@ export function Sidebar() {
           >
             <div className="p-4 border-b border-[rgb(var(--border))]">
               <Link href="/dashboard" className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-pink-500 flex items-center justify-center shadow-lg">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
                   <span className="text-white font-bold">DV</span>
                 </div>
                 <div>
@@ -79,7 +79,7 @@ export function Sidebar() {
                   className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-[rgb(var(--border))] bg-[rgb(var(--card))] hover:bg-[rgb(var(--muted))] transition-colors text-sm"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-6 h-6 rounded bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
+                    <div className="w-6 h-6 rounded bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
                       {currentWorkspace?.name?.[0] || 'W'}
                     </div>
                     <span className="truncate">{currentWorkspace?.name || 'Select workspace'}</span>
@@ -109,7 +109,7 @@ export function Sidebar() {
                               : 'hover:bg-[rgb(var(--muted))]'
                           )}
                         >
-                          <div className="w-5 h-5 rounded bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center text-white text-xs">
+                          <div className="w-5 h-5 rounded bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs">
                             {ws.name[0]}
                           </div>
                           <span className="truncate">{ws.name}</span>
@@ -149,14 +149,14 @@ export function Sidebar() {
             </nav>
 
             <div className="p-3 border-t border-[rgb(var(--border))]">
-              <div className="card p-3 bg-gradient-to-br from-rose-500/5 to-pink-500/5">
+              <div className="card p-3 bg-gradient-to-br from-blue-500/5 to-blue-600/5">
                 <div className="flex items-center gap-2 mb-2">
                   <Star size={14} className="text-amber-500" />
                   <span className="text-sm font-medium">Storage Used</span>
                 </div>
                 <div className="w-full h-2 bg-[rgb(var(--muted))] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-rose-500 to-pink-500 rounded-full transition-all"
+                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all"
                     style={{ width: `${Math.min((storageUsed / storageLimit) * 100, 100)}%` }}
                   />
                 </div>

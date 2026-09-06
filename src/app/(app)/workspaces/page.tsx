@@ -120,7 +120,7 @@ export default function WorkspacesPage() {
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-pink-500 flex items-center justify-center text-white font-bold">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold">
                     {ws.name[0]}
                   </div>
                   <div>
@@ -135,7 +135,7 @@ export default function WorkspacesPage() {
                 {(ws.members || []).slice(0, 5).map((member, j) => (
                   <div
                     key={member.uid}
-                    className="w-7 h-7 rounded-full bg-gradient-to-br from-rose-400 to-pink-400 border-2 border-[rgb(var(--card))] flex items-center justify-center text-white text-xs font-medium"
+                    className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 border-2 border-[rgb(var(--card))] flex items-center justify-center text-white text-xs font-medium"
                     title={member.displayName}
                   >
                     {member.displayName?.[0] || '?'}
@@ -195,7 +195,7 @@ export default function WorkspacesPage() {
             <div className="divide-y divide-[rgb(var(--border))]">
               {(selectedWs.members || []).map((member) => (
                 <div key={member.uid} className="flex items-center gap-3 py-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center text-white text-sm font-medium">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-sm font-medium">
                     {member.displayName?.[0] || '?'}
                   </div>
                   <div className="flex-1 min-w-0">

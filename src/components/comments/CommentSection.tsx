@@ -93,7 +93,7 @@ export function CommentSection({ documentId }: CommentSectionProps) {
               animate={{ opacity: 1, y: 0 }}
               className="flex gap-3"
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
                 {comment.userName?.[0] || '?'}
               </div>
               <div className="flex-1 min-w-0">

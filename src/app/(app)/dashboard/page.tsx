@@ -43,7 +43,7 @@ export default function DashboardPage() {
   }, [currentWorkspace]);
 
   const statCards = [
-    { label: 'Documents', value: stats.docCount, icon: FileText, color: 'from-rose-500 to-pink-500' },
+    { label: 'Documents', value: stats.docCount, icon: FileText, color: 'from-blue-500 to-blue-600' },
     { label: 'Folders', value: stats.folderCount, icon: FolderOpen, color: 'from-violet-500 to-purple-500' },
     { label: 'Team Members', value: stats.memberCount, icon: Users, color: 'from-blue-500 to-cyan-500' },
     { label: 'Storage Used', value: formatFileSize(stats.totalSize), icon: HardDrive, color: 'from-amber-500 to-orange-500' },
@@ -136,7 +136,7 @@ export default function DashboardPage() {
               {activities.length > 0 ? (
                 activities.slice(0, 5).map((activity) => (
                   <div key={activity.id} className="px-5 py-3 flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
                       {activity.userName?.[0] || '?'}
                     </div>
                     <div className="flex-1 min-w-0">

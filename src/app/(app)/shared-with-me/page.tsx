@@ -115,7 +115,7 @@ export default function SharedWithMePage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{item.document.name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center text-white text-[8px] font-medium flex-shrink-0">
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-[8px] font-medium flex-shrink-0">
                           {getInitials(item.sharedByName)}
                         </div>
                         <p className="text-xs text-[rgb(var(--muted-foreground))]">

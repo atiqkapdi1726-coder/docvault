@@ -50,7 +50,7 @@ export default function TrashPage() {
           animate={{ opacity: 1, y: 0 }}
         >
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Trash2 size={24} className="text-rose-500" />
+            <Trash2 size={24} className="text-blue-500" />
             Trash
           </h1>
           <p className="text-[rgb(var(--muted-foreground))] mt-1">
@@ -78,7 +78,7 @@ export default function TrashPage() {
             animate={{ opacity: 1, scale: 1 }}
             className="card p-12 text-center"
           >
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto mb-4">
               <Trash2 size={28} className="text-white" />
             </div>
             <h2 className="text-lg font-semibold mb-2">Trash is empty</h2>
@@ -99,7 +99,7 @@ export default function TrashPage() {
                   className="card p-4"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
                       <FileText size={20} className="text-white" />
                     </div>
                     <div className="flex-1 min-w-0">

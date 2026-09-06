@@ -68,7 +68,7 @@ export default function StarredPage() {
             animate={{ opacity: 1, scale: 1 }}
             className="card p-12 text-center"
           >
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center mx-auto mb-4">
               <Star size={28} className="text-white fill-white" />
             </div>
             <h2 className="text-lg font-semibold mb-2">No starred documents</h2>
@@ -89,7 +89,7 @@ export default function StarredPage() {
                   className="card p-5 group hover:shadow-lg transition-shadow"
                 >
                   <div className="flex items-start justify-between mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
                       <FileText size={20} className="text-white" />
                     </div>
                     <button

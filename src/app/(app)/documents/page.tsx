@@ -233,8 +233,8 @@ export default function DocumentsPage() {
                     >
                       <div className="p-4">
                         <div className="flex items-start justify-between mb-3">
-                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/20 dark:to-pink-900/20 flex items-center justify-center">
-                            <span className="text-sm font-bold text-rose-600 dark:text-rose-400">
+                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-900/20 flex items-center justify-center">
+                            <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
                               {getFileExtension(doc.name).toUpperCase()}
                             </span>
                           </div>
@@ -322,8 +322,8 @@ export default function DocumentsPage() {
                 <div className="card divide-y divide-[rgb(var(--border))]">
                   {documents.map((doc) => (
                     <div key={doc.id} className="px-4 py-3 flex items-center gap-4 hover:bg-[rgb(var(--muted))]/50 transition-colors">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/20 dark:to-pink-900/20 flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs font-bold text-rose-600 dark:text-rose-400">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-900/20 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
                           {getFileExtension(doc.name).toUpperCase()}
                         </span>
                       </div>
