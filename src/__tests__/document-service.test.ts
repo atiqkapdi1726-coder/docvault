@@ -23,8 +23,8 @@ describe('documentService', () => {
     expect(typeof documentService.getSharedLinksForDocument).toBe('function');
   });
 
-  it('has 19 service methods', () => {
+  it('has 22 service methods', () => {
     const methods = Object.keys(documentService).filter(k => typeof (documentService as any)[k] === 'function');
-    expect(methods.length).toBe(19);
+    expect(methods.length).toBe(22);
   });
 });

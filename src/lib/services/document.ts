@@ -112,6 +112,19 @@ export const documentService = {
     });
   },
 
+  // Move document to a folder (null = root)
+  moveDocument: async (docId: string, folderId: string | null) => {
+    await firestoreService.updateDoc('documents', docId, { folderId });
+  },
+
+  renameDocument: async (docId: string, name: string) => {
+    await firestoreService.updateDoc('documents', docId, { name });
+  },
+
+  updateDescription: async (docId: string, description: string) => {
+    await firestoreService.updateDoc('documents', docId, { description });
+  },
+
   searchDocuments: async (workspaceId: string, searchTerm: string) => {
     const allDocs = await firestoreService.getDocs('documents', {
       conditions: [['workspaceId', '==', workspaceId]],

@@ -12,11 +12,69 @@ import { motion } from 'framer-motion';
 import {
   FileText, Download, Share2, Trash2, Tag, Clock, Eye,
   MessageSquare, Plus, Send, Link2, Copy, Check, Lock,
-  History, X, Calendar, FileImage, RotateCcw, Sparkles, Bot, User as UserIcon, Loader2,
+  History, X, Calendar, FileImage, RotateCcw, Sparkles, Bot, User as UserIcon, Loader2, Upload, ScrollText, Pencil,
 } from 'lucide-react';
-import type { Document, Comment, SharedLink } from '@/lib/types';
+import type { Document, Comment, SharedLink, DocumentVersion } from '@/lib/types';
 import { CommentSection } from '@/components/comments/CommentSection';
 import { toast } from '@/components/ui/Toaster';
+
+function EditDescription({ doc, onSaved }: { doc: Document; onSaved: (d: string) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(doc.description || '');
+  const [saving, setSaving] = useState(false);
+
+  if (editing) {
+    return (
+      <div className="flex items-start gap-2">
+        <textarea
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          className="input-field flex-1 text-sm min-h-[70px] resize-y"
+          placeholder="Add a description for this document…"
+          autoFocus
+        />
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={async () => {
+              setSaving(true);
+              try {
+                await documentService.updateDescription(doc.id, value.trim());
+                onSaved(value.trim());
+                setEditing(false);
+                toast('Description saved', 'success');
+              } catch {
+                toast('Failed to save description', 'error');
+              } finally {
+                setSaving(false);
+              }
+            }}
+            disabled={saving}
+            className="btn-primary text-xs flex items-center gap-1"
+          >
+            {saving ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} Save
+          </button>
+          <button onClick={() => { setValue(doc.description || ''); setEditing(false); }} className="btn-ghost text-xs">
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <p className={cn('text-sm', !doc.description && 'text-[rgb(var(--muted-foreground))] italic')}>
+        {doc.description || 'No description yet — add one to help search and AI.'}
+      </p>
+      <button
+        onClick={() => setEditing(true)}
+        className="btn-ghost text-xs flex items-center gap-1 flex-shrink-0"
+      >
+        <Pencil size={12} /> {doc.description ? 'Edit' : 'Add'}
+      </button>
+    </div>
+  );
+}
 
 export default function DocumentDetailPage() {
   const params = useParams();
@@ -198,6 +256,94 @@ export default function DocumentDetailPage() {
     }
   };
 
+  // ---------- OCR ----------
+  const [ocrText, setOcrText] = useState<string | null>(null);
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrCopied, setOcrCopied] = useState(false);
+
+  const runOCR = async () => {
+    if (!doc || ocrLoading) return;
+    setOcrLoading(true);
+    setOcrText(null);
+    try {
+      const res = await fetch('/api/ai/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentId: doc.id }),
+      });
+      const data = await res.json();
+      if (data?.success) {
+        setOcrText(data.text);
+        if (data.text === '[No text detected]') {
+          toast('No text found in this file', 'info');
+        } else {
+          toast('Text extracted', 'success');
+        }
+      } else {
+        toast(data?.error || 'OCR failed', 'error');
+      }
+    } catch {
+      toast('OCR failed', 'error');
+    } finally {
+      setOcrLoading(false);
+    }
+  };
+
+  // ---------- New version upload ----------
+  const [versionNote, setVersionNote] = useState('');
+  const [uploadingVersion, setUploadingVersion] = useState(false);
+
+  const handleVersionUpload = async (file: File) => {
+    if (!doc || !user || uploadingVersion) return;
+    setUploadingVersion(true);
+    try {
+      const stored = await storageService.uploadFile(file, `workspaces/${doc.workspaceId}/documents`);
+
+      // AI-polish the changelog note (optional, falls back to plain note)
+      let changelog = versionNote.trim() || 'New version uploaded';
+      try {
+        const res = await fetch('/api/ai/changelog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ documentName: doc.name, changelog: versionNote }),
+        });
+        const data = await res.json();
+        if (data?.changelog) changelog = data.changelog;
+      } catch {}
+
+      const newVersion: DocumentVersion = {
+        version: (doc.version || 1) + 1,
+        fileUrl: stored.fileUrl,
+        fileSize: stored.fileSize,
+        uploadedBy: user.uid,
+        uploadedAt: new Date().toISOString(),
+        changelog,
+      };
+      const versions = [...(doc.versions || []), newVersion];
+      await documentService.updateDocument(doc.id, {
+        versions,
+        version: newVersion.version,
+        fileUrl: stored.fileUrl,
+        fileSize: stored.fileSize,
+        mimeType: stored.contentType,
+      } as any);
+      setDoc({
+        ...doc,
+        versions,
+        version: newVersion.version,
+        fileUrl: stored.fileUrl,
+        fileSize: stored.fileSize,
+        mimeType: stored.contentType,
+      });
+      setVersionNote('');
+      toast(`Uploaded v${newVersion.version} — changelog: ${changelog}`, 'success');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Version upload failed', 'error');
+    } finally {
+      setUploadingVersion(false);
+    }
+  };
+
   const handleAddTag = async () => {
     if (!newTag.trim() || !doc) return;
     const tags = [...doc.tags, newTag.trim()];
@@ -245,7 +391,24 @@ export default function DocumentDetailPage() {
                   <span className="text-sm font-bold text-blue-600">{getFileExtension(doc.name).toUpperCase()}</span>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold truncate">{doc.name}</h1>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-2xl font-bold truncate">{doc.name}</h1>
+                    <button
+                      onClick={() => {
+                        const newName = window.prompt('Rename document', doc.name);
+                        if (newName && newName.trim() && newName !== doc.name) {
+                          documentService.renameDocument(doc.id, newName.trim()).then(() => {
+                            setDoc({ ...doc, name: newName.trim() });
+                            toast('Document renamed', 'success');
+                          }).catch(() => toast('Rename failed', 'error'));
+                        }
+                      }}
+                      className="p-1.5 rounded-lg hover:bg-[rgb(var(--muted))] text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]"
+                      title="Rename"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                  </div>
                   <div className="flex items-center gap-3 text-sm text-[rgb(var(--muted-foreground))]">
                     <span>{formatFileSize(doc.fileSize)}</span>
                     <span>·</span>
@@ -282,6 +445,14 @@ export default function DocumentDetailPage() {
             </div>
           </div>
         </motion.div>
+
+        {/* Editable description */}
+        <div className="card p-4">
+          <div className="flex items-center gap-2 text-xs text-[rgb(var(--muted-foreground))] mb-2">
+            <FileText size={14} /> Description
+          </div>
+          <EditDescription doc={doc} onSaved={(d) => setDoc({ ...doc, description: d })} />
+        </div>
 
         {/* Inline file preview */}
         {previewLoading ? (
@@ -362,6 +533,35 @@ export default function DocumentDetailPage() {
               <h3 className="font-semibold">Version History</h3>
               <button onClick={() => setShowVersions(false)}><X size={18} /></button>
             </div>
+
+            {/* Upload new version */}
+            <div className="p-4 border border-dashed border-[rgb(var(--border))] rounded-xl space-y-3">
+              <p className="text-sm font-medium">Upload new version (v{(doc.version || 1) + 1})</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={versionNote}
+                  onChange={(e) => setVersionNote(e.target.value)}
+                  placeholder="What changed? (optional — AI will polish it)"
+                  className="input-field flex-1"
+                />
+                <label className={cn('btn-primary text-sm cursor-pointer flex items-center gap-1.5', uploadingVersion && 'opacity-50 pointer-events-none')}>
+                  {uploadingVersion ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                  {uploadingVersion ? 'Uploading…' : 'Upload'}
+                  <input
+                    type="file"
+                    className="hidden"
+                    disabled={uploadingVersion}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleVersionUpload(f);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+
             <div className="space-y-3">
               {(doc.versions || []).slice().reverse().map((v) => (
                 <div key={v.version} className="flex items-center gap-3 p-3 bg-[rgb(var(--muted))] rounded-lg">
@@ -515,16 +715,60 @@ export default function DocumentDetailPage() {
                 </div>
               )}
             </div>
-            <button
-              onClick={regenerateAnalysis}
-              disabled={aiBusy}
-              className="btn-secondary text-xs flex items-center gap-1.5 flex-shrink-0"
-              title="Generate or refresh AI summary"
-            >
-              {aiBusy ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-              {aiBusy ? 'Analyzing…' : doc.aiSummary ? 'Re-analyze' : 'Analyze'}
-            </button>
+            <div className="flex flex-col gap-2 flex-shrink-0">
+              <button
+                onClick={regenerateAnalysis}
+                disabled={aiBusy}
+                className="btn-secondary text-xs flex items-center gap-1.5"
+                title="Generate or refresh AI summary"
+              >
+                {aiBusy ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                {aiBusy ? 'Analyzing…' : doc.aiSummary ? 'Re-analyze' : 'Analyze'}
+              </button>
+              {(doc.mimeType?.startsWith('image/') || doc.mimeType === 'application/pdf') && (
+                <button
+                  onClick={runOCR}
+                  disabled={ocrLoading}
+                  className="btn-secondary text-xs flex items-center gap-1.5"
+                  title="Extract all text from this image/PDF using AI"
+                >
+                  {ocrLoading ? <Loader2 size={14} className="animate-spin" /> : <ScrollText size={14} />}
+                  {ocrLoading ? 'Reading…' : 'Extract Text'}
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* OCR result panel */}
+          {ocrText && ocrText !== '[No text detected]' && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                  <ScrollText size={14} /> Extracted Text
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(ocrText);
+                      setOcrCopied(true);
+                      setTimeout(() => setOcrCopied(false), 2000);
+                    }}
+                    className="btn-secondary text-xs flex items-center gap-1"
+                  >
+                    {ocrCopied ? <Check size={12} /> : <Copy size={12} />} {ocrCopied ? 'Copied' : 'Copy'}
+                  </button>
+                  <button onClick={() => setOcrText(null)} className="text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]">
+                    <X size={14} />
+                  </button>
+                </div>
+              </div>
+              <pre className="text-sm whitespace-pre-wrap max-h-64 overflow-auto bg-[rgb(var(--muted))] rounded-lg p-4">{ocrText}</pre>
+            </motion.div>
+          )}
         </motion.div>
 
         <CommentSection documentId={doc.id} />
