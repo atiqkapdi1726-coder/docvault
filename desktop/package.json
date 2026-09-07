@@ -1,0 +1,45 @@
+{
+  "name": "docvault-desktop",
+  "version": "1.0.0",
+  "description": "DocVault - Secure Document Management (Desktop Edition)",
+  "main": "main.js",
+  "author": "Atique Kapdi",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win",
+    "dist:portable": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8",
+    "electron-packager": "^17.1.2"
+  },
+  "build": {
+    "appId": "com.docvault.app",
+    "productName": "DocVault",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "build/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false
+    }
+  },
+  "allowScripts": {
+    "electron@33.4.11": true
+  }
+}

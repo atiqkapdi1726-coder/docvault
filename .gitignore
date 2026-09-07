@@ -41,3 +41,9 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# Desktop app build output
+desktop/out/
+desktop/node_modules/
+desktop/dist/
+
