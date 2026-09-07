@@ -1,0 +1,46 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "donut_model_usage",
+  "position": { "x": 20, "y": 450, "z": 0, "width": 380, "height": 250, "tabOrder": 700 },
+  "visual": {
+    "visualType": "donutChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "queryRef": "Predictions.model_used",
+              "field": { "Column": { "Expression": { "SourceRef": { "Source": "Predictions" } }, "Property": "model_used" } }
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "queryRef": "Count(Predictions.id)",
+              "field": {
+                "Aggregation": {
+                  "Expression": { "Column": { "Expression": { "SourceRef": { "Source": "Predictions" } }, "Property": "id" } },
+                  "Function": 2
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": true,
+            "text": { "expr": { "Literal": "\"ML Model Utilization\"" } },
+            "fontColor": { "solid": { "color": "#1F4E79" } },
+            "fontSize": 12,
+            "bold": true
+          }
+        }
+      ]
+    }
+  }
+}

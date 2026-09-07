@@ -1,0 +1,62 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "chart_by_user",
+  "position": { "x": 420, "y": 450, "z": 0, "width": 420, "height": 250, "tabOrder": 800 },
+  "visual": {
+    "visualType": "barChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "queryRef": "Predictions.user",
+              "field": { "Column": { "Expression": { "SourceRef": { "Source": "Predictions" } }, "Property": "user" } }
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "queryRef": "Count(Predictions.id)",
+              "field": {
+                "Aggregation": {
+                  "Expression": { "Column": { "Expression": { "SourceRef": { "Source": "Predictions" } }, "Property": "id" } },
+                  "Function": 2
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": true,
+            "text": { "expr": { "Literal": "\"System Usage by User\"" } },
+            "fontColor": { "solid": { "color": "#1F4E79" } },
+            "fontSize": 12,
+            "bold": true
+          }
+        }
+      ]
+    },
+    "objects": {
+      "dataPoint": [
+        {
+          "properties": {
+            "fillColor": { "solid": { "color": "#8B5CF6" } }
+          }
+        }
+      ],
+      "labels": [
+        {
+          "properties": {
+            "show": true
+          }
+        }
+      ]
+    }
+  }
+}

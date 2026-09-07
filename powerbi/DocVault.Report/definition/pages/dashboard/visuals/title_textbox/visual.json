@@ -1,0 +1,44 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "title_textbox",
+  "position": { "x": 700, "y": 30, "z": 0, "width": 560, "height": 80, "tabOrder": 1000 },
+  "visual": {
+    "visualType": "textbox",
+    "query": {
+      "queryState": {}
+    },
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "DocVault - Cloud Document Management",
+                    "textStyle": {
+                      "fontSize": 20,
+                      "bold": true,
+                      "fontColor": { "solid": { "color": "#1F4E79" } }
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "ML Analytics: Python Flask | Scikit-learn | TensorFlow | MongoDB",
+                    "textStyle": {
+                      "fontSize": 11,
+                      "fontColor": { "solid": { "color": "#64748B" } }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

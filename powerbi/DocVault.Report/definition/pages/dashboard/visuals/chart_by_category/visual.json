@@ -1,0 +1,76 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "chart_by_category",
+  "position": { "x": 20, "y": 150, "z": 0, "width": 420, "height": 280, "tabOrder": 400 },
+  "visual": {
+    "visualType": "barChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "queryRef": "Documents.ml_category",
+              "field": { "Column": { "Expression": { "SourceRef": { "Source": "Documents" } }, "Property": "ml_category" } }
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "queryRef": "Count(Documents.name)",
+              "field": {
+                "Aggregation": {
+                  "Expression": { "Column": { "Expression": { "SourceRef": { "Source": "Documents" } }, "Property": "name" } },
+                  "Function": 2
+                }
+              }
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": { "Column": { "Expression": { "SourceRef": { "Source": "Documents" } }, "Property": "name" } },
+                "Function": 2
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": false
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": true,
+            "text": { "expr": { "Literal": "\"Documents by AI-Predicted Category\"" } },
+            "fontColor": { "solid": { "color": "#1F4E79" } },
+            "fontSize": 12,
+            "bold": true
+          }
+        }
+      ]
+    },
+    "objects": {
+      "dataPoint": [
+        {
+          "properties": {
+            "fillColor": { "solid": { "color": "#3B82F6" } }
+          }
+        }
+      ],
+      "labels": [
+        {
+          "properties": {
+            "show": true
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,142 @@
+database
+	mlabel = 1567
+	compatibilityLevel = 1567
+	model
+		defaultPowerBIDataSourceVersion = powerBI_V3
+		disableAutoExist = false
+
+		expression Documents Connected = #"Documents CSV"
+
+		expression Predictions Connected = #"Predictions CSV"
+
+		expression Documents CSV = [
+  let
+    Source = Csv.Document(File.Contents("C:\Users\ATIQUE KAPDI\OneDrive\Documents\Default Project\docvault\college-backend\powerbi_documents.csv"), [Delimiter=",", Columns=9, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"id", type text}, {"name", type text}, {"ml_category", type text}, {"ml_confidence", type number}, {"ml_model", type text}, {"mimeType", type text}, {"file_size_bytes", Int64.Type}, {"user", type text}, {"created_at", type datetime}})
+  in
+    #"Changed Type"
+]
+
+		expression Predictions CSV = [
+  let
+    Source = Csv.Document(File.Contents("C:\Users\ATIQUE KAPDI\OneDrive\Documents\Default Project\docvault\college-backend\powerbi_predictions.csv"), [Delimiter=",", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"id", type text}, {"timestamp", type datetime}, {"category", type text}, {"confidence", type number}, {"model_used", type text}, {"user", type text}})
+  in
+    #"Changed Type"
+]
+
+		expression Documents = #"Documents CSV"
+
+		expression Predictions = #"Predictions CSV"
+
+		table Documents
+			linageTag = 9f8a1111-1111-4111-8111-111111111111
+
+			column id
+				dataType = string
+				linageTag = 9f8a2222-2222-4222-8222-222222222222
+				sourceColumn = id
+				summarizeBy = none
+
+			column name
+				dataType = string
+				linageTag = 9f8a3333-3333-4333-8333-333333333333
+				sourceColumn = name
+				summarizeBy = none
+
+			column ml_category
+				dataType = string
+				linageTag = 9f8a4444-4444-4444-8444-444444444444
+				sourceColumn = ml_category
+				summarizeBy = none
+
+			column ml_confidence
+				dataType = double
+				linageTag = 9f8a5555-5555-4555-8555-555555555555
+				sourceColumn = ml_confidence
+				summarizeBy = none
+				formatString = 0.00%
+
+			column ml_model
+				dataType = string
+				linageTag = 9f8a6666-6666-4666-8666-666666666666
+				sourceColumn = ml_model
+				summarizeBy = none
+
+			column mimeType
+				dataType = string
+				linageTag = 9f8a7777-7777-4777-8777-777777777777
+				sourceColumn = mimeType
+				summarizeBy = none
+
+			column file_size_bytes
+				dataType = int64
+				linageTag = 9f8a8888-8888-4888-8888-888888888888
+				sourceColumn = file_size_bytes
+				summarizeBy = sum
+
+			column user
+				dataType = string
+				linageTag = 9f8a9999-9999-4999-8999-999999999999
+				sourceColumn = user
+				summarizeBy = none
+
+			column created_at
+				dataType = dateTime
+				linageTag = 9f8aaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa
+				sourceColumn = created_at
+				summarizeBy = none
+
+		table Predictions
+			linageTag = 9f8bbbb1-1111-4111-8111-111111111111
+
+			column id
+				dataType = string
+				linageTag = 9f8bbbb2-2222-4222-8222-222222222222
+				sourceColumn = id
+				summarizeBy = none
+
+			column timestamp
+				dataType = dateTime
+				linageTag = 9f8bbbb3-3333-4333-8333-333333333333
+				sourceColumn = timestamp
+				summarizeBy = none
+
+			column category
+				dataType = string
+				linageTag = 9f8bbbb4-4444-4444-8444-444444444444
+				sourceColumn = category
+				summarizeBy = none
+
+			column confidence
+				dataType = double
+				linageTag = 9f8bbbb5-5555-4555-8555-555555555555
+				sourceColumn = confidence
+				summarizeBy = none
+				formatString = 0.00%
+
+			column model_used
+				dataType = string
+				linageTag = 9f8bbbb6-6666-4666-8666-666666666666
+				sourceColumn = model_used
+				summarizeBy = none
+
+			column user
+				dataType = string
+				linageTag = 9f8bbbb7-7777-4777-8777-777777777777
+				sourceColumn = user
+				summarizeBy = none
+
+		relationship 5a1e1111-1111-4111-8111-111111111111
+			fromTable = Predictions
+			fromColumn = category
+			toTable = Documents
+			toColumn = ml_category
+			crossFilteringBehavior = bothDirections
+			joinOnDateBehavior = dateAndTime
+			relyOnReferentialIntegrity = false
+			securityFilteringBehavior = oneDirection
+
+		annotation PBI_QueryOrder = Documents CSV=1, Predictions CSV=2
