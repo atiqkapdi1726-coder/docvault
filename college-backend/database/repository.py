@@ -1,7 +1,7 @@
 """
-MongoDB data layer (MongoDB Atlas free M0 cluster).
+MongoDB data layer (MongoDB Atlas).
 Falls back to in-memory storage if MONGODB_URI is not configured,
-so the project runs out-of-the-box for demos.
+so the service runs without external dependencies.
 
 Collections:
 - documents    : document records + ML predictions

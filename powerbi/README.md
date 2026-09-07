@@ -42,7 +42,7 @@ where it is, or edit the two paths in
 
 ## Refresh with new data
 
-1. Classify more documents in the ML Lab (or re-run `seed_demo.py`)
+1. Classify more documents in the web app (or re-run `seed_data.py`)
 2. Re-download the CSVs:
    - `http://localhost:5000/api/analytics/documents.csv`
    - `http://localhost:5000/api/analytics/predictions.csv`

@@ -1,6 +1,6 @@
 """
 DocVault - Cloud-based Document Management System
-Flask REST API (College Project Backend)
+Flask REST API Service
 
 Endpoints:
   GET  /api/health              - service + storage health

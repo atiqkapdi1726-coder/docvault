@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
   try {
     const { documentName, changelog } = await request.json();
     if (!hasGeminiKey()) {
-      return NextResponse.json({ error: 'AI not configured' }, { status: 503 });
+      return NextResponse.json({ error: 'AI service is temporarily unavailable' }, { status: 503 });
     }
     if (!changelog?.trim()) {
       return NextResponse.json({ success: true, changelog: 'New version uploaded' });

@@ -138,7 +138,7 @@ export default function SettingsPage() {
                 <div className="space-y-6">
                   <h2 className="text-lg font-semibold">Security</h2>
                   <p className="text-sm text-[rgb(var(--muted-foreground))]">
-                    Manage your password and security settings through Firebase Auth.
+                    Your account security is managed by your sign-in provider.
                   </p>
                   <div className="p-4 bg-[rgb(var(--muted))] rounded-lg">
                     <p className="font-medium text-sm mb-1">Account Provider</p>

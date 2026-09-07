@@ -215,7 +215,7 @@ export function useDocuments(folderId?: string | null) {
           })
           .catch(() => {});
 
-        // Fire-and-forget ML classification via Python/Flask backend
+        // Fire-and-forget ML classification via the classification service
         // (scikit-learn + TensorFlow) - logs to MongoDB for analytics
         const FLASK = process.env.NEXT_PUBLIC_FLASK_API_URL || 'http://localhost:5000';
         fetch(`${FLASK}/api/documents`, {

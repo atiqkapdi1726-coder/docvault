@@ -1,8 +1,8 @@
 """
-Seed MongoDB with realistic demo data so the Power BI dashboard
-has plenty of rows to visualize. Idempotent: skips if data exists.
+Seed the database with sample workspace data.
+Idempotent: skips if data already exists.
 
-Usage:  python seed_demo.py
+Usage:  python seed_data.py
 """
 
 import os
@@ -16,7 +16,7 @@ from ml.classifier import classify_text
 
 random.seed(42)
 
-DEMO_DOCUMENTS = [
+SAMPLE_DOCUMENTS = [
     # (name, description, tags, mime, size_kb)
     ("Invoice_2026_Q1_VendorTech.pdf", "payment due total amount 5000 for consulting services", ["invoice", "payment"], "application/pdf", 120),
     ("Invoice_2026_Q2_CloudHost.pdf", "bill amount due cloud hosting services monthly", ["invoice"], "application/pdf", 98),
@@ -36,7 +36,7 @@ DEMO_DOCUMENTS = [
     ("Office_Lease_Agreement.pdf", "rental lease agreement tenant landlord property terms", ["contract", "lease"], "application/pdf", 300),
     ("Vendor_Service_Agreement.pdf", "service agreement vendor obligations scope work", ["contract", "vendor"], "application/pdf", 180),
     ("Pitch_Deck_Startup.pptx", "presentation pitch deck investors startup idea funding", ["presentation", "pitch"], "application/vnd.ms-powerpoint", 2400),
-    ("Product_Demo_Slides.pptx", "presentation slides demo product features walkthrough", ["presentation"], "application/vnd.ms-powerpoint", 5600),
+    ("Product_Walkthrough_Slides.pptx", "presentation slides walkthrough product features tour", ["presentation"], "application/vnd.ms-powerpoint", 5600),
     ("Client_Proposal_Presentation.pptx", "proposal presentation client business strategy overview", ["presentation", "proposal"], "application/vnd.ms-powerpoint", 3100),
     ("Weekly_Team_Meeting_Notes.docx", "meeting minutes attendees agenda action items discussion", ["meeting", "notes"], "application/msword", 45),
     ("Board_Meeting_Minutes.pdf", "board meeting minutes resolutions approved attendees agenda", ["meeting", "board"], "application/pdf", 130),
@@ -71,8 +71,8 @@ def seed():
         print("Delete the 'documents' collection in Atlas to re-seed.")
         return
 
-    print("Seeding MongoDB with demo data...")
-    for name, desc, tags, mime, size_kb in DEMO_DOCUMENTS:
+    print("Seeding database with sample data...")
+    for name, desc, tags, mime, size_kb in SAMPLE_DOCUMENTS:
         text = f"{name} {desc} {' '.join(tags)}"
         prediction = classify_text(text)
         user = random.choice(USERS)
@@ -105,7 +105,7 @@ def seed():
     for action in ACTIONS:
         repo.increment_counter(f"action_{action}", amount=random.randint(5, 40))
 
-    print("\nDone! Seeded", len(DEMO_DOCUMENTS), "documents into MongoDB Atlas.")
+    print("\nDone! Seeded", len(SAMPLE_DOCUMENTS), "documents into MongoDB Atlas.")
     print("Open Power BI and load: http://localhost:5000/api/analytics/export.csv")
 
 

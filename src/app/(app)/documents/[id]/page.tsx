@@ -151,7 +151,7 @@ export default function DocumentDetailPage() {
       const answer =
         data?.answer ||
         (data?.error?.includes('not configured')
-          ? 'AI is not configured. Add a GEMINI_API_KEY to enable this feature.'
+          ? 'AI features are temporarily unavailable. Please contact support if this persists.'
           : 'Sorry, I could not answer that right now.');
       setChatMessages((prev) => [...prev, { role: 'assistant', content: answer }]);
     } catch {

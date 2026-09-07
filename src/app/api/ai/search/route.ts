@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing workspaceId or query' }, { status: 400 });
     }
     if (!hasGeminiKey()) {
-      return NextResponse.json({ error: 'AI not configured (missing GEMINI_API_KEY)' }, { status: 503 });
+      return NextResponse.json({ error: 'AI service is temporarily unavailable' }, { status: 503 });
     }
     if (!Array.isArray(documents) || documents.length === 0) {
       return NextResponse.json({ success: true, results: [] });

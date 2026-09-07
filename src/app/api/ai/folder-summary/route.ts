@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No documents provided' }, { status: 400 });
     }
     if (!hasGeminiKey()) {
-      return NextResponse.json({ error: 'AI not configured (missing GEMINI_API_KEY)' }, { status: 503 });
+      return NextResponse.json({ error: 'AI service is temporarily unavailable' }, { status: 503 });
     }
 
     const docList = (documents as DocLite[]).slice(0, 60).map((d) => ({
