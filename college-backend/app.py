@@ -146,37 +146,57 @@ def analytics():
 
 @app.route("/api/analytics/export.csv", methods=["GET"])
 def export_csv():
-    """CSV export for Power BI / Tableau."""
+    """Combined CSV export (legacy) for Tableau."""
+    return _predictions_csv()
+
+
+@app.route("/api/analytics/predictions.csv", methods=["GET"])
+def export_predictions_csv():
+    """Clean single-table CSV: ML predictions (Power BI ready)."""
+    return _predictions_csv()
+
+
+def _predictions_csv():
     import csv
     import io
 
     preds = repo.find_predictions(limit=5000)
-    docs = repo.find_documents(limit=5000)
-
     buf = io.StringIO()
     w = csv.writer(buf)
-
-    w.writerow(["-- PREDICTIONS --"])
-    w.writerow(["id", "timestamp", "category", "confidence", "model_used"])
+    w.writerow(["id", "timestamp", "category", "confidence", "model_used", "user"])
     for p in preds:
         w.writerow(
             [p.get("_id"), p.get("timestamp"), p.get("category"),
-             p.get("confidence"), p.get("model_used")]
+             p.get("confidence"), p.get("model_used"), p.get("user", "")]
         )
-
-    w.writerow([])
-    w.writerow(["-- DOCUMENTS --"])
-    w.writerow(["id", "name", "ml_category", "ml_confidence", "mimeType", "fileSize", "created_at"])
-    for d in docs:
-        w.writerow(
-            [d.get("_id"), d.get("name"), d.get("ml_category"), d.get("ml_confidence"),
-             d.get("mimeType"), d.get("fileSize"), d.get("created_at")]
-        )
-
     return Response(
         buf.getvalue(),
         mimetype="text/csv",
-        headers={"Content-Disposition": "attachment; filename=docvault_analytics.csv"},
+        headers={"Content-Disposition": "attachment; filename=docvault_predictions.csv"},
+    )
+
+
+@app.route("/api/analytics/documents.csv", methods=["GET"])
+def export_documents_csv():
+    """Clean single-table CSV: document records with ML metadata (Power BI ready)."""
+    import csv
+    import io
+
+    docs = repo.find_documents(limit=5000)
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(["id", "name", "ml_category", "ml_confidence", "ml_model",
+                "mimeType", "file_size_bytes", "user", "created_at"])
+    for d in docs:
+        w.writerow(
+            [d.get("_id"), d.get("name"), d.get("ml_category"), d.get("ml_confidence"),
+             d.get("ml_model"), d.get("mimeType"), d.get("fileSize"),
+             d.get("user", ""), d.get("created_at")]
+        )
+    return Response(
+        buf.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=docvault_documents.csv"},
     )
 
 
