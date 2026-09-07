@@ -194,16 +194,23 @@ export function useDocuments(folderId?: string | null) {
 
         const docId = await documentService.createDocument(docData);
 
-        // Fire-and-forget AI analysis (updates doc when done via real-time sync)
+        // Fire-and-forget AI analysis; client saves results (signed-in)
         fetch('/api/ai/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ documentId: docId }),
         })
           .then((r) => (r.ok ? r.json() : null))
-          .then((data) => {
-            if (data?.aiSummary) {
-              toast(`${file.name}: AI summary ready`, 'success');
+          .then(async (data) => {
+            if (data?.success && data.aiSummary) {
+              try {
+                await documentService.updateDocument(docId as string, {
+                  aiSummary: data.aiSummary,
+                  aiTags: data.aiTags,
+                  description: data.description,
+                } as any);
+                toast(`${file.name}: AI summary ready`, 'success');
+              } catch {}
             }
           })
           .catch(() => {});

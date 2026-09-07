@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAppStore } from '@/lib/stores/appStore';
@@ -43,6 +43,19 @@ export default function DocumentDetailPage() {
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
+  const chatRef = useRef<HTMLDivElement>(null);
+
+  const toggleAIChat = () => {
+    setShowAIChat((prev) => {
+      const next = !prev;
+      if (next) {
+        setTimeout(() => {
+          chatRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
+      return next;
+    });
+  };
 
   const askAI = async (question: string) => {
     if (!question.trim() || !doc || chatLoading) return;
@@ -84,13 +97,19 @@ export default function DocumentDetailPage() {
       });
       const data = await res.json();
       if (data?.success) {
+        // Client (signed-in) saves the AI results to Firestore
+        await documentService.updateDocument(doc.id, {
+          aiSummary: data.aiSummary,
+          aiTags: data.aiTags,
+          description: data.description,
+        } as any);
         setDoc({
           ...doc,
           aiSummary: data.aiSummary,
           aiTags: data.aiTags,
           description: data.description,
         });
-        toast('AI analysis updated', 'success');
+        toast('AI analysis complete', 'success');
       } else {
         toast(data?.error || 'AI analysis failed', 'error');
       }
@@ -240,10 +259,10 @@ export default function DocumentDetailPage() {
 
             <div className="flex items-center gap-2 flex-wrap">
               <button
-                onClick={() => setShowAIChat(!showAIChat)}
+                onClick={toggleAIChat}
                 className="btn-primary flex items-center gap-2 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
-                <Sparkles size={16} /> Ask AI
+                <Sparkles size={16} /> {showAIChat ? 'Hide AI Chat' : 'Ask AI'}
               </button>
               <button onClick={handleDownload} className="btn-secondary flex items-center gap-2 text-sm">
                 <Download size={16} /> Download
@@ -390,7 +409,7 @@ export default function DocumentDetailPage() {
 
         {/* Ask AI chat panel */}
         {showAIChat && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card overflow-hidden">
+          <motion.div ref={chatRef} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card overflow-hidden scroll-mt-20">
             <div className="p-4 border-b border-[rgb(var(--border))] flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
               <h3 className="font-semibold flex items-center gap-2">
                 <Sparkles size={18} /> Ask AI about this document

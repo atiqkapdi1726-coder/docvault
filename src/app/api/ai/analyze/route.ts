@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDoc, doc, updateDoc, getFirestore } from 'firebase/firestore';
+import { getDoc, doc, getFirestore } from 'firebase/firestore';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { generateContent, safeJsonParse, dataUrlToPart, hasGeminiKey } from '@/lib/ai/gemini';
 
@@ -72,14 +72,8 @@ Rules:
     const aiTags = Array.isArray(parsed.tags) ? parsed.tags.slice(0, 6).map(String) : [];
     const description = parsed.description || docData.description || '';
 
-    // Save AI results to the document
-    await updateDoc(doc(db, 'documents', documentId), {
-      aiSummary,
-      aiTags,
-      description,
-      aiProcessedAt: new Date().toISOString(),
-    });
-
+    // NOTE: no server-side write — the signed-in client saves these results
+    // itself (server requests are anonymous and blocked by Firestore rules)
     return NextResponse.json({
       success: true,
       aiSummary,
