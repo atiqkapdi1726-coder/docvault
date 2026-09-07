@@ -10,7 +10,7 @@ import { DocumentGridSkeleton } from '@/components/skeletons/Skeletons';
 import {
   FileText, Folder, Upload, Plus, Grid, List, MoreVertical,
   Star, Trash2, Download, Share2, Eye, ChevronRight, Home,
-  ArrowUpRight, Tag, Clock,
+  ArrowUpRight, Tag, Clock, Sparkles,
 } from 'lucide-react';
 import { folderService } from '@/lib/services/folder';
 import { documentService } from '@/lib/services/document';
@@ -236,84 +236,24 @@ export default function DocumentsPage() {
                       animate={{ opacity: 1, scale: 1 }}
                       className="card group hover:border-[rgb(var(--primary))]/50 transition-all relative"
                     >
-                      <div className="p-4">
+                      <Link href={`/documents/${doc.id}`} className="block p-4 cursor-pointer">
                         <div className="flex items-start justify-between mb-3">
                           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-900/20 flex items-center justify-center">
                             <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
                               {getFileExtension(doc.name).toUpperCase()}
                             </span>
                           </div>
-                          <div className="relative">
-                            <button
-                              onClick={() => setContextMenu(contextMenu === doc.id ? null : doc.id)}
-                              className="p-1 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-[rgb(var(--muted))] transition-all"
-                            >
-                              <MoreVertical size={16} />
-                            </button>
-                            <AnimatePresence>
-                              {contextMenu === doc.id && (
-                                <motion.div
-                                  initial={{ opacity: 0, scale: 0.95 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  exit={{ opacity: 0, scale: 0.95 }}
-                                  className="absolute right-0 top-8 w-40 card p-1 shadow-lg z-10"
-                                >
-                                  <Link
-                                    href={`/documents/${doc.id}`}
-                                    onClick={() => setContextMenu(null)}
-                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]"
-                                  >
-                                    <Eye size={14} /> View
-                                  </Link>
-                                  {doc.fileUrl && (
-                                    <button
-                                      onClick={async () => {
-                                        setContextMenu(null);
-                                        try {
-                                          await documentService.downloadDocument(doc);
-                                        } catch {
-                                          toast('Download failed', 'error');
-                                        }
-                                      }}
-                                      className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]"
-                                    >
-                                      <Download size={14} /> Download
-                                    </button>
-                                  )}
-                                  <button
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(`${window.location.origin}/documents/${doc.id}`);
-                                      setContextMenu(null);
-                                    }}
-                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]"
-                                  >
-                                    <Share2 size={14} /> Share
-                                  </button>
-                                  <button
-                                    onClick={async () => {
-                                      await documentService.updateDocument(doc.id, { isStarred: !(doc as any).isStarred } as any);
-                                      loadDocuments();
-                                      setContextMenu(null);
-                                    }}
-                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]"
-                                  >
-                                    <Star size={14} /> {(doc as any).isStarred ? 'Unstar' : 'Star'}
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteDoc(doc.id)}
-                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600"
-                                  >
-                                    <Trash2 size={14} /> Delete
-                                  </button>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
                         </div>
                         <p className="font-medium text-sm truncate mb-1">{doc.name}</p>
                         <p className="text-xs text-[rgb(var(--muted-foreground))]">
                           {formatFileSize(doc.fileSize)} · v{doc.version}
                         </p>
+                        {doc.aiSummary && (
+                          <div className="flex items-center gap-1 mt-2 text-[rgb(var(--primary))]">
+                            <Sparkles size={12} />
+                            <span className="text-xs truncate">AI summary available</span>
+                          </div>
+                        )}
                         {doc.tags.length > 0 && (
                           <div className="flex gap-1 mt-2 flex-wrap">
                             {doc.tags.slice(0, 3).map((tag) => (
@@ -323,6 +263,73 @@ export default function DocumentsPage() {
                             ))}
                           </div>
                         )}
+                      </Link>
+
+                      <div className="absolute top-3 right-3">
+                        <button
+                          onClick={(e) => { e.preventDefault(); setContextMenu(contextMenu === doc.id ? null : doc.id); }}
+                          className="p-1 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-[rgb(var(--muted))] transition-all"
+                        >
+                          <MoreVertical size={16} />
+                        </button>
+                        <AnimatePresence>
+                          {contextMenu === doc.id && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.95 }}
+                              className="absolute right-0 top-8 w-40 card p-1 shadow-lg z-20"
+                            >
+                              <Link
+                                href={`/documents/${doc.id}`}
+                                onClick={() => setContextMenu(null)}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]"
+                              >
+                                <Eye size={14} /> View
+                              </Link>
+                              {doc.fileUrl && (
+                                <button
+                                  onClick={async () => {
+                                    setContextMenu(null);
+                                    try {
+                                      await documentService.downloadDocument(doc);
+                                    } catch {
+                                      toast('Download failed', 'error');
+                                    }
+                                  }}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]"
+                                >
+                                  <Download size={14} /> Download
+                                </button>
+                              )}
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(`${window.location.origin}/documents/${doc.id}`);
+                                  setContextMenu(null);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]"
+                              >
+                                <Share2 size={14} /> Share
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  await documentService.updateDocument(doc.id, { isStarred: !(doc as any).isStarred } as any);
+                                  loadDocuments();
+                                  setContextMenu(null);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-[rgb(var(--muted))]"
+                              >
+                                <Star size={14} /> {(doc as any).isStarred ? 'Unstar' : 'Star'}
+                              </button>
+                              <button
+                                onClick={() => handleDeleteDoc(doc.id)}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600"
+                              >
+                                <Trash2 size={14} /> Delete
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     </motion.div>
                   ))}
@@ -330,7 +337,11 @@ export default function DocumentsPage() {
               ) : (
                 <div className="card divide-y divide-[rgb(var(--border))]">
                   {documents.map((doc) => (
-                    <div key={doc.id} className="px-4 py-3 flex items-center gap-4 hover:bg-[rgb(var(--muted))]/50 transition-colors">
+                    <Link
+                      key={doc.id}
+                      href={`/documents/${doc.id}`}
+                      className="px-4 py-3 flex items-center gap-4 hover:bg-[rgb(var(--muted))]/50 transition-colors"
+                    >
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-900/20 flex items-center justify-center flex-shrink-0">
                         <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
                           {getFileExtension(doc.name).toUpperCase()}
@@ -343,13 +354,14 @@ export default function DocumentsPage() {
                         </p>
                       </div>
                       <div className="flex items-center gap-1">
+                        {doc.aiSummary && <Sparkles size={14} className="text-[rgb(var(--primary))]" />}
                         {doc.tags.slice(0, 2).map((tag) => (
                           <span key={tag} className="px-2 py-0.5 text-xs rounded-full bg-[rgb(var(--primary))]/10 text-[rgb(var(--primary))]">
                             {tag}
                           </span>
                         ))}
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}

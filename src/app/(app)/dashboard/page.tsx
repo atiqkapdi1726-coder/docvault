@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { documentService } from '@/lib/services/document';
 import { folderService } from '@/lib/services/folder';
+import Link from 'next/link';
 
 export default function DashboardPage() {
   const { user, currentWorkspace } = useAppStore();
@@ -102,7 +103,11 @@ export default function DashboardPage() {
             <div className="divide-y divide-[rgb(var(--border))]">
               {recentDocs.length > 0 ? (
                 recentDocs.map((doc) => (
-                  <div key={doc.id} className="px-5 py-3 flex items-center gap-3 hover:bg-[rgb(var(--muted))]/50 transition-colors">
+                  <Link
+                    key={doc.id}
+                    href={`/documents/${doc.id}`}
+                    className="px-5 py-3 flex items-center gap-3 hover:bg-[rgb(var(--muted))]/50 transition-colors"
+                  >
                     <FileText size={18} className="text-[rgb(var(--primary))]" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{doc.name}</p>
@@ -110,7 +115,7 @@ export default function DashboardPage() {
                         {formatFileSize(doc.fileSize)} · {formatRelativeTime(doc.updatedAt)}
                       </p>
                     </div>
-                  </div>
+                  </Link>
                 ))
               ) : (
                 <div className="px-5 py-8 text-center text-sm text-[rgb(var(--muted-foreground))]">
