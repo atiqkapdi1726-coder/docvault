@@ -102,6 +102,23 @@ export default function DocumentDetailPage() {
   const [chatLoading, setChatLoading] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
+  const shareRef = useRef<HTMLDivElement>(null);
+  const versionsRef = useRef<HTMLDivElement>(null);
+  const tagsRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll any opened panel into view (panels sit below the tall preview)
+  useEffect(() => {
+    if (showAIChat) setTimeout(() => chatRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }, [showAIChat]);
+  useEffect(() => {
+    if (showShare) setTimeout(() => shareRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }, [showShare]);
+  useEffect(() => {
+    if (showVersions) setTimeout(() => versionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }, [showVersions]);
+  useEffect(() => {
+    if (showTagEdit) setTimeout(() => tagsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }, [showTagEdit]);
 
   const toggleAIChat = () => {
     setShowAIChat((prev) => {
@@ -498,7 +515,7 @@ export default function DocumentDetailPage() {
         ) : null}
 
         {showShare && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card p-5 space-y-4">
+          <motion.div ref={shareRef} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card p-5 space-y-4 scroll-mt-20">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold">Share Document</h3>
               <button onClick={() => setShowShare(false)}><X size={18} /></button>
@@ -528,7 +545,7 @@ export default function DocumentDetailPage() {
         )}
 
         {showVersions && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card p-5 space-y-4">
+          <motion.div ref={versionsRef} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card p-5 space-y-4 scroll-mt-20">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold">Version History</h3>
               <button onClick={() => setShowVersions(false)}><X size={18} /></button>
@@ -574,9 +591,26 @@ export default function DocumentDetailPage() {
                       {formatFileSize(v.fileSize)} · {formatRelativeTime(v.uploadedAt)}
                     </p>
                   </div>
-                  <a href={v.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost text-sm">
+                  <button
+                    onClick={async () => {
+                      try {
+                        const dataUrl = await storageService.downloadFile(v.fileUrl);
+                        if (!dataUrl) throw new Error();
+                        const a = document.createElement('a');
+                        a.href = dataUrl;
+                        a.download = doc.name;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                      } catch {
+                        toast('Download failed', 'error');
+                      }
+                    }}
+                    className="btn-ghost text-sm"
+                    title={`Download v${v.version}`}
+                  >
                     <Download size={14} />
-                  </a>
+                  </button>
                 </div>
               ))}
               {(!doc.versions || doc.versions.length === 0) && (
@@ -587,7 +621,7 @@ export default function DocumentDetailPage() {
         )}
 
         {showTagEdit && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card p-5 space-y-4">
+          <motion.div ref={tagsRef} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="card p-5 space-y-4 scroll-mt-20">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold">Tags</h3>
               <button onClick={() => setShowTagEdit(false)}><X size={18} /></button>

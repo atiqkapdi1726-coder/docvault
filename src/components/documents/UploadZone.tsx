@@ -78,7 +78,7 @@ export function UploadZone({ onUpload, folderId }: UploadZoneProps) {
             {isDragging ? 'Drop files here' : 'Drag & drop files or click to browse'}
           </p>
           <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
-            Supports all file types up to 50MB
+            Any file type up to 800KB (free plan)
           </p>
         </label>
       </div>

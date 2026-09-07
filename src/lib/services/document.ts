@@ -5,20 +5,22 @@ import { generateToken } from '../utils';
 
 export const documentService = {
   getDocuments: async (workspaceId: string, folderId?: string) => {
+    // NOTE: isArchived is filtered in JS — Firestore '== false' does not
+    // match documents where the field is missing entirely
     const conditions: [string, string, unknown][] = [
       ['workspaceId', '==', workspaceId],
-      ['isArchived', '==', false],
     ];
     if (folderId) {
       conditions.push(['folderId', '==', folderId]);
     } else {
       conditions.push(['folderId', '==', null]);
     }
-    return firestoreService.getDocs('documents', {
+    const all = await firestoreService.getDocs('documents', {
       conditions,
       orderByField: 'updatedAt',
       orderByDirection: 'desc',
-    }) as Promise<Document[]>;
+    });
+    return (all as Document[]).filter((d) => d.isArchived !== true);
   },
 
   getAllDocuments: async (workspaceId: string) => {
@@ -130,20 +132,24 @@ export const documentService = {
       conditions: [['workspaceId', '==', workspaceId]],
     });
     const lower = searchTerm.toLowerCase();
-    return (allDocs as Document[]).filter(
-      (doc) =>
-        doc.name.toLowerCase().includes(lower) ||
-        doc.description.toLowerCase().includes(lower) ||
-        doc.tags.some((tag) => tag.toLowerCase().includes(lower)) ||
-        (doc.aiSummary && doc.aiSummary.toLowerCase().includes(lower))
-    );
+    return (allDocs as Document[])
+      .filter((doc) => doc.isArchived !== true)
+      .filter(
+        (doc) =>
+          doc.name.toLowerCase().includes(lower) ||
+          doc.description.toLowerCase().includes(lower) ||
+          doc.tags.some((tag) => tag.toLowerCase().includes(lower)) ||
+          (doc.aiSummary && doc.aiSummary.toLowerCase().includes(lower))
+      );
   },
 
   getStarredDocs: async (workspaceId: string) => {
     const allDocs = await firestoreService.getDocs('documents', {
       conditions: [['workspaceId', '==', workspaceId]],
     });
-    return (allDocs as Document[]).filter((doc: Document & { isStarred?: boolean }) => (doc as Document & { isStarred?: boolean }).isStarred);
+    return (allDocs as Document[])
+      .filter((doc) => doc.isArchived !== true)
+      .filter((doc: Document & { isStarred?: boolean }) => (doc as Document & { isStarred?: boolean }).isStarred);
   },
 
   createShareLink: async (
