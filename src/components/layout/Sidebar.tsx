@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, FileText, FolderOpen, Users, Search,
   Activity, Shield, Settings, ChevronDown, Plus, Star,
-  BarChart3, Trash2, Share2, HardDrive,
+  BarChart3, Trash2, Share2, HardDrive, FlaskConical,
 } from 'lucide-react';
 
 const navItems = [
@@ -20,6 +20,7 @@ const navItems = [
   { href: '/starred', label: 'Starred', icon: Star },
   { href: '/shared-with-me', label: 'Shared With Me', icon: Share2 },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/ml-lab', label: 'ML Lab', icon: FlaskConical },
   { href: '/workspaces', label: 'Workspaces', icon: Users },
   { href: '/search', label: 'Search', icon: Search },
   { href: '/activity', label: 'Activity', icon: Activity },
